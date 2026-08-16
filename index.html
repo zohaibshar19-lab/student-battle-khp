@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Battle KHP</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <!-- ===============================
+         HEADER
+    ================================ -->
+
+    <header class="site-header">
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                ⚔
+            </div>
+
+            <div>
+                <div class="brand-title">
+                    Student Battle <span>KHP</span>
+                </div>
+
+                <div class="brand-subtitle">
+                    Compete • Learn • Represent
+                </div>
+            </div>
+
+        </div>
+
+
+        <nav class="nav">
+
+            <button onclick="scrollToSection('home')">
+                Home
+            </button>
+
+            <button onclick="scrollToSection('institutes')">
+                Institutes
+            </button>
+
+            <button onclick="scrollToSection('battles')">
+                Battles
+            </button>
+
+
+            <div id="userArea">
+
+                <button
+                    class="nav-cta"
+                    onclick="openRegistration()"
+                >
+                    Join Battle
+                </button>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <!-- ===============================
+         MAIN
+    ================================ -->
+
+    <main id="home">
+
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <div class="hero-copy">
+
+                <div class="eyebrow">
+                    KHAIRPUR'S STUDENT COMPETITION
+                </div>
+
+
+                <h1>
+                    Represent your institute.
+                    <br>
+
+                    <span>
+                        Compete for the top.
+                    </span>
+                </h1>
+
+
+                <p>
+                    Student Battle KHP is a quiz competition platform
+                    where students can test their knowledge, represent
+                    their institutes and climb the leaderboard.
+                </p>
+
+
+                <div class="hero-actions">
+
+                    <button
+                        class="primary-btn"
+                        onclick="openRegistration()"
+                    >
+                        Create Student Profile
+                    </button>
+
+
+                    <button
+                        class="secondary-btn"
+                        onclick="scrollToSection('battles')"
+                    >
+                        Explore Battles
+                    </button>
+
+                </div>
+
+
+                <div class="hero-stats">
+
+                    <div>
+                        <strong>300+</strong>
+                        <span>MCQs</span>
+                    </div>
+
+                    <div>
+                        <strong>6</strong>
+                        <span>Categories</span>
+                    </div>
+
+                    <div>
+                        <strong>∞</strong>
+                        <span>Competition</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPETITION STATUS CARD -->
+
+            <div class="hero-card">
+
+                <div class="card-glow"></div>
+
+                <div class="battle-card-top">
+                    <span>COMPETITION STATUS</span>
+                    <span class="status-dot">●</span>
+                </div>
+
+                <h3>No live competition yet</h3>
+
+                <p>
+                    Official head-to-head results and the leaderboard will appear here
+                    after a real Student Battle KHP competition has been completed.
+                </p>
+
+                <div class="competition-placeholder">
+                    <div class="placeholder-icon">⚔</div>
+                    <div>
+                        <strong>Be ready for the challenge</strong>
+                        <small>Register your student profile and explore the available battles.</small>
+                    </div>
+                </div>
+
+                <button class="primary-btn full" onclick="openRegistration()">
+                    Join Student Battle
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- ===============================
+             INSTITUTES
+        ================================ -->
+
+        <section class="section" id="institutes">
+
+            <div class="section-heading">
+                <div class="eyebrow">REPRESENT</div>
+                <h2>Universities & Institutes</h2>
+                <p>
+                    Choose the university or institute you represent in the Khairpur region.
+                </p>
+            </div>
+
+            <div class="institute-grid">
+
+                <div class="institute-card featured"><div class="rank">01</div><h3>Shah Abdul Latif University</h3><p>SALU</p><span>Khairpur Mirs, Sindh</span></div>
+                <div class="institute-card"><div class="rank">02</div><h3>Sukkur IBA University</h3><p>SIBA</p><span>Sukkur, Sindh</span></div>
+                <div class="institute-card"><div class="rank">03</div><h3>University of Sindh</h3><p>UOS</p><span>Jamshoro, Sindh</span></div>
+                <div class="institute-card"><div class="rank">04</div><h3>Institute of Business Administration Karachi</h3><p>IBA Karachi</p><span>Karachi, Sindh</span></div>
+                <div class="institute-card"><div class="rank">05</div><h3>NED University of Engineering & Technology</h3><p>NEDUET</p><span>Karachi, Sindh</span></div>
+                <div class="institute-card"><div class="rank">06</div><h3>University of Karachi</h3><p>UOK</p><span>Karachi, Sindh</span></div>
+                <div class="institute-card"><div class="rank">07</div><h3>LUMS</h3><p>LUMS</p><span>Lahore, Punjab</span></div>
+                <div class="institute-card"><div class="rank">08</div><h3>University of the Punjab</h3><p>PU</p><span>Lahore, Punjab</span></div>
+                <div class="institute-card"><div class="rank">09</div><h3>National University of Sciences & Technology</h3><p>NUST</p><span>Islamabad</span></div>
+                <div class="institute-card"><div class="rank">10</div><h3>Quaid-i-Azam University</h3><p>QAU</p><span>Islamabad</span></div>
+                <div class="institute-card"><div class="rank">11</div><h3>COMSATS University Islamabad</h3><p>CUI</p><span>Islamabad</span></div>
+                <div class="institute-card"><div class="rank">12</div><h3>University of Peshawar</h3><p>UOP</p><span>Peshawar, Khyber Pakhtunkhwa</span></div>
+                <div class="institute-card"><div class="rank">13</div><h3>Ghulam Ishaq Khan Institute</h3><p>GIKI</p><span>Topi, Khyber Pakhtunkhwa</span></div>
+                <div class="institute-card"><div class="rank">14</div><h3>University of Engineering & Technology Lahore</h3><p>UET Lahore</p><span>Lahore, Punjab</span></div>
+                <div class="institute-card"><div class="rank">15</div><h3>Aga Khan University</h3><p>AKU</p><span>Karachi, Sindh</span></div>
+                <div class="institute-card"><div class="rank">16</div><h3>Pakistan Institute of Engineering & Applied Sciences</h3><p>PIEAS</p><span>Islamabad</span></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===============================
+             BATTLES
+        ================================ -->
+
+        <section
+            class="section battles"
+            id="battles"
+        >
+
+            <div class="section-heading">
+
+                <div class="eyebrow">
+                    CHOOSE YOUR CHALLENGE
+                </div>
+
+                <h2>
+                    Battle Categories
+                </h2>
+
+                <p>
+                    Every category contains 50 questions.
+                </p>
+
+            </div>
+
+
+            <div class="category-grid">
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('General Knowledge')"
+                >
+
+                    <span>
+                        🌍
+                    </span>
+
+                    <strong>
+                        General Knowledge
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('Computer Science')"
+                >
+
+                    <span>
+                        💻
+                    </span>
+
+                    <strong>
+                        Computer Science
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('Mathematics')"
+                >
+
+                    <span>
+                        📐
+                    </span>
+
+                    <strong>
+                        Mathematics
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('English')"
+                >
+
+                    <span>
+                        📚
+                    </span>
+
+                    <strong>
+                        English
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('Pakistan Studies')"
+                >
+
+                    <span>
+                        🇵🇰
+                    </span>
+
+                    <strong>
+                        Pakistan Studies
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    onclick="startBattle('Current Affairs')"
+                >
+
+                    <span>
+                        📰
+                    </span>
+
+                    <strong>
+                        Current Affairs
+                    </strong>
+
+                    <small>
+                        50 MCQs
+                    </small>
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ===============================
+         LEADERBOARD
+         Hidden until at least one real battle is completed.
+    ================================ -->
+
+    <section class="section leaderboard-section" id="leaderboardSection" hidden>
+        <div class="section-heading">
+            <div class="eyebrow">COMPETITION RESULTS</div>
+            <h2>Leaderboard</h2>
+            <p>Only completed Student Battle KHP results are shown here.</p>
+        </div>
+
+        <div id="leaderboard" class="leaderboard-list"></div>
+    </section>
+
+
+    <!-- ===============================
+         FOOTER
+    ================================ -->
+
+    <footer>
+
+        <div class="footer-brand">
+            Student Battle <span>KHP</span>
+        </div>
+
+        <p>
+            Built for students of Khairpur.
+            Learn, compete and represent.
+        </p>
+
+    </footer>
+
+
+
+    <!-- ===============================
+         REGISTRATION MODAL
+    ================================ -->
+
+    <div
+        id="registrationModal"
+        class="modal-overlay"
+    >
+
+        <div class="modal-box">
+
+
+            <button
+                class="modal-close"
+                onclick="closeRegistration()"
+            >
+                &times;
+            </button>
+
+
+            <div class="modal-icon">
+                🎓
+            </div>
+
+
+            <div class="eyebrow">
+                JOIN THE BATTLE
+            </div>
+
+
+            <h2>
+                Create your student profile
+            </h2>
+
+
+            <p class="modal-subtitle">
+                Start your journey and represent your institute.
+            </p>
+
+
+            <form id="registrationForm">
+
+
+                <div class="form-group">
+
+                    <label for="studentName">
+                        Full Name
+                    </label>
+
+                    <input
+                        id="studentName"
+                        type="text"
+                        placeholder="Enter your full name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="studentInstitute">
+                        Institute
+                    </label>
+
+                    <select
+                        id="studentInstitute"
+                        required
+                    >
+
+                        <option value="">
+                            Select your institute
+                        </option>
+                        <option value="Shah Abdul Latif University — Khairpur Mirs">Shah Abdul Latif University — Khairpur Mirs</option>
+                        <option value="Sukkur IBA University — Sukkur">Sukkur IBA University — Sukkur</option>
+                        <option value="University of Sindh — Jamshoro">University of Sindh — Jamshoro</option>
+                        <option value="IBA Karachi — Karachi">IBA Karachi — Karachi</option>
+                        <option value="NED University of Engineering & Technology — Karachi">NED University — Karachi</option>
+                        <option value="University of Karachi — Karachi">University of Karachi — Karachi</option>
+                        <option value="LUMS — Lahore">LUMS — Lahore</option>
+                        <option value="University of the Punjab — Lahore">University of the Punjab — Lahore</option>
+                        <option value="NUST — Islamabad">NUST — Islamabad</option>
+                        <option value="Quaid-i-Azam University — Islamabad">Quaid-i-Azam University — Islamabad</option>
+                        <option value="COMSATS University Islamabad — Islamabad">COMSATS University Islamabad — Islamabad</option>
+                        <option value="University of Peshawar — Peshawar">University of Peshawar — Peshawar</option>
+                        <option value="GIKI — Topi">GIKI — Topi</option>
+                        <option value="UET Lahore — Lahore">UET Lahore — Lahore</option>
+                        <option value="Aga Khan University — Karachi">Aga Khan University — Karachi</option>
+                        <option value="PIEAS — Islamabad">PIEAS — Islamabad</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="studentEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="studentEmail"
+                        type="email"
+                        placeholder="student@example.com"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="studentPassword">
+                        Password
+                    </label>
+
+                    <input
+                        id="studentPassword"
+                        type="password"
+                        minlength="6"
+                        placeholder="At least 6 characters"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-btn full"
+                    type="submit"
+                >
+                    Create Student Profile
+                </button>
+
+            </form>
+
+
+            <p class="auth-message" aria-live="polite"></p>
+
+            <p class="modal-note">
+                Already have an account?
+                <button type="button" class="auth-switch" onclick="switchToLogin()">Login</button>
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===============================
+         LOGIN MODAL
+    ================================ -->
+
+    <div
+        id="loginModal"
+        class="modal-overlay"
+    >
+
+        <div class="modal-box auth-box">
+
+            <button
+                class="modal-close"
+                onclick="closeLogin()"
+            >
+                &times;
+            </button>
+
+            <div class="modal-icon">
+                🔐
+            </div>
+
+            <div class="eyebrow">
+                WELCOME BACK
+            </div>
+
+            <h2>
+                Login to Student Battle
+            </h2>
+
+            <p class="modal-subtitle">
+                Sign in to continue your battles and keep your score.
+            </p>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input
+                        id="loginEmail"
+                        type="email"
+                        placeholder="student@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input
+                        id="loginPassword"
+                        type="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button
+                    class="primary-btn full"
+                    type="submit"
+                >
+                    Login
+                </button>
+
+            </form>
+
+            <p class="auth-message" aria-live="polite"></p>
+
+            <p class="modal-note">
+                New to Student Battle?
+                <button type="button" class="auth-switch" onclick="switchToRegistration()">Create an account</button>
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===============================
+         PROFILE MODAL
+    ================================ -->
+
+    <div
+        id="profileModal"
+        class="modal-overlay"
+    >
+
+        <div class="modal-box profile-box">
+
+
+            <button
+                class="modal-close"
+                onclick="closeProfile()"
+            >
+                &times;
+            </button>
+
+
+            <div class="modal-icon">
+                🎓
+            </div>
+
+
+            <div class="eyebrow">
+                STUDENT PROFILE
+            </div>
+
+
+            <h2 id="profileName">
+                Student
+            </h2>
+
+
+            <p class="modal-subtitle">
+                Your Student Battle KHP profile
+            </p>
+
+
+            <div class="profile-details">
+
+                <div>
+                    <span>
+                        🏫 Institute
+                    </span>
+
+                    <strong id="profileInstitute">
+                        -
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        📧 Email
+                    </span>
+
+                    <strong id="profileEmail">
+                        -
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        🏆 Score
+                    </span>
+
+                    <strong id="profileScore">
+                        0
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>
+                        ⚔️ Battles
+                    </span>
+
+                    <strong id="profileBattles">
+                        0
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <button
+                class="secondary-btn full"
+                onclick="logoutStudent()"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===============================
+         QUIZ MODAL
+    ================================ -->
+
+    <div
+        id="battleModal"
+        class="modal-overlay"
+    >
+
+        <div class="modal-box battle-modal">
+
+
+            <button
+                class="modal-close"
+                onclick="closeBattle()"
+            >
+                &times;
+            </button>
+
+
+            <div class="battle-top">
+
+                <div>
+
+                    <div class="eyebrow">
+                        STUDENT BATTLE
+                    </div>
+
+                    <h2 id="battleTitle">
+                        General Knowledge
+                    </h2>
+
+                </div>
+
+
+                <strong id="questionNumber">
+                    Question 1 of 50
+                </strong>
+
+            </div>
+
+
+            <div class="progress-track">
+
+                <div
+                    id="progressBar"
+                    class="progress-bar"
+                ></div>
+
+            </div>
+
+
+            <h3
+                id="questionText"
+                class="question-text"
+            ></h3>
+
+
+            <div
+                id="answers"
+                class="answers"
+            ></div>
+
+
+            <div
+                id="quizResult"
+                class="quiz-result"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
