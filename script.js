@@ -2645,7 +2645,12 @@ function startBattle(category) {
 
 
     /*
-        Keep exactly 50 questions.
+        Keep exactly 50 questions for normal
+        category battles.
+
+        NOTE:
+        This does NOT affect the LIVE competition.
+        The live competition has its own questions.
     */
 
     battleQuestions =
@@ -2669,376 +2674,944 @@ function startBattle(category) {
 
 }
 
-
 /* =========================================================
-   SHOW QUESTION
+   LIVE COMPETITION
+   Real-time synchronized competition
 ========================================================= */
 
-function showQuestion() {
+/*
+    IMPORTANT:
+    Keep ONLY ONE declaration of these variables
+    in script.js.
+*/
 
-    answerLocked = false;
+let activeLiveCompetition = null;
+let activeLiveParticipant = null;
+
+let liveQuestionTimer = null;
+let liveRealtimeChannel = null;
+let liveTimeRemaining = 60;
+
+let liveQuestions = [];
+let liveCurrentQuestion = 0;
+let liveScore = 0;
+let liveAnswerLocked = false;
 
 
-    const question =
-        battleQuestions[currentQuestion];
+/* =========================================================
+   LOAD LIVE COMPETITION
+========================================================= */
+
+async function loadLiveCompetition() {
+
+    const container =
+        document.getElementById("liveCompetitionContent");
 
 
-    if (!question) {
+    if (!container) {
 
-        finishBattle();
+        console.error(
+            "liveCompetitionContent element not found."
+        );
 
         return;
     }
 
 
-    const totalQuestions =
-        battleQuestions.length;
+    if (!requireSupabase()) {
+
+        console.error(
+            "Supabase is not ready."
+        );
+
+        return;
+    }
 
 
-    document.getElementById("questionNumber")
-        .textContent =
-        `Question ${currentQuestion + 1} of ${totalQuestions}`;
+    try {
+
+        /* =====================================================
+           FIRST: CHECK FOR A LIVE COMPETITION
+        ===================================================== */
+
+        const {
+            data: liveCompetition,
+            error: liveError
+        } =
+            await supabaseClient
+                .from("live_competitions")
+                .select("*")
+                .eq("status", "live")
+                .order("started_at", {
+                    ascending: false
+                })
+                .limit(1)
+                .maybeSingle();
 
 
-    document.getElementById("progressBar")
-        .style.width =
-        `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+        if (liveError) {
+
+            console.error(
+                "Live competition error:",
+                liveError
+            );
+
+        }
 
 
-    document.getElementById("questionText")
-        .textContent =
-        question.q;
+        /* =====================================================
+           IF COMPETITION IS LIVE
+        ===================================================== */
+
+        if (liveCompetition) {
+
+            activeLiveCompetition =
+                liveCompetition;
 
 
-    const answers =
-        document.getElementById("answers");
+            container.innerHTML = `
+
+                <div class="eyebrow">
+                    🔴 LIVE NOW
+                </div>
 
 
-    answers.innerHTML = "";
+                <h3>
+                    ${escapeLiveText(
+                        liveCompetition.title
+                    )}
+                </h3>
 
 
-    question.options.forEach(
-        function (option, index) {
-
-            const button =
-                document.createElement("button");
+                <p>
+                    The competition is live now!
+                </p>
 
 
-            button.className =
-                "answer";
+                <div class="competition-placeholder">
+
+                    <div class="placeholder-icon">
+                        ⚔
+                    </div>
 
 
-            button.textContent =
-                `${String.fromCharCode(65 + index)}. ${option}`;
+                    <div>
+
+                        <strong>
+                            Competition in progress
+                        </strong>
 
 
-            button.addEventListener(
-                "click",
-                function () {
+                        <small>
+                            ${Number(
+                                liveCompetition.total_questions || 100
+                            )}
+                            questions —
+                            1 minute per question.
+                        </small>
 
-                    selectAnswer(index, button);
+                    </div>
 
+                </div>
+
+
+                <button
+                    class="primary-btn full"
+                    onclick="joinLiveCompetition()"
+                >
+                    ENTER COMPETITION
+                </button>
+
+            `;
+
+
+            return;
+        }
+
+
+        /* =====================================================
+           SECOND: CHECK FOR UPCOMING COMPETITION
+        ===================================================== */
+
+        const {
+            data: upcomingCompetition,
+            error: upcomingError
+        } =
+            await supabaseClient
+                .from("live_competitions")
+                .select("*")
+                .eq("status", "waiting")
+                .not(
+                    "scheduled_start",
+                    "is",
+                    null
+                )
+                .order("scheduled_start", {
+                    ascending: true
+                })
+                .limit(1)
+                .maybeSingle();
+
+
+        /* =====================================================
+           CHECK UPCOMING COMPETITION ERROR
+        ===================================================== */
+
+        if (upcomingError) {
+
+            console.error(
+                "Upcoming competition error:",
+                upcomingError
+            );
+
+            throw upcomingError;
+        }
+
+
+        /* =====================================================
+           NO UPCOMING COMPETITION
+        ===================================================== */
+
+        if (!upcomingCompetition) {
+
+            activeLiveCompetition = null;
+
+
+            container.innerHTML = `
+
+                <h3>
+                    No competition scheduled
+                </h3>
+
+
+                <p>
+                    There is currently no upcoming or live
+                    Student Battle KHP competition.
+                </p>
+
+
+                <div class="competition-placeholder">
+
+                    <div class="placeholder-icon">
+                        ⚔
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Stay ready for the challenge
+                        </strong>
+
+
+                        <small>
+                            A new competition will appear here
+                            when it is scheduled.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="primary-btn full"
+                    onclick="openRegistration()"
+                >
+                    Create Student Profile
+                </button>
+
+            `;
+
+
+            return;
+        }
+
+
+        /* =====================================================
+           UPCOMING COMPETITION FOUND
+        ===================================================== */
+
+        activeLiveCompetition =
+            upcomingCompetition;
+
+
+        /* =====================================================
+           CONVERT TIME TO PAKISTAN TIME
+        ===================================================== */
+
+        const startDate =
+            new Date(
+                upcomingCompetition.scheduled_start
+            );
+
+
+        const pakistanTime =
+            startDate.toLocaleString(
+                "en-PK",
+                {
+                    timeZone: "Asia/Karachi",
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true
                 }
             );
 
 
-            answers.appendChild(button);
+        /* =====================================================
+           SHOW UPCOMING COMPETITION
+        ===================================================== */
 
-        }
-    );
+        container.innerHTML = `
+
+            <div class="eyebrow">
+                🟡 UPCOMING COMPETITION
+            </div>
 
 
-    document.getElementById("quizResult")
-        .textContent = "";
+            <h3>
+                ${escapeLiveText(
+                    upcomingCompetition.title
+                )}
+            </h3>
+
+
+            <p>
+                Starts ${pakistanTime} (Pakistan Time)
+            </p>
+
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚔
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Get ready for the challenge
+                    </strong>
+
+
+                    <small>
+                        ${Number(
+                            upcomingCompetition.total_questions || 100
+                        )}
+                        questions will be available
+                        when the competition starts.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="primary-btn full"
+                onclick="joinLiveCompetition()"
+            >
+                JOIN COMPETITION
+            </button>
+
+        `;
+
+
+    } catch (error) {
+
+        console.error(
+            "Unexpected live competition error:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <h3>
+                Unable to load competition
+            </h3>
+
+
+            <p>
+                There was a problem checking the competition.
+                Please refresh the page and try again.
+            </p>
+
+
+            <button
+                class="primary-btn full"
+                onclick="loadLiveCompetition()"
+            >
+                Try Again
+            </button>
+
+        `;
+
+    }
 
 }
 
 
 /* =========================================================
-   SELECT ANSWER
+   JOIN LIVE COMPETITION
 ========================================================= */
 
-function selectAnswer(selectedIndex, selectedButton) {
+async function joinLiveCompetition() {
 
-    if (answerLocked) {
+    if (!requireSupabase()) {
         return;
     }
 
 
-    answerLocked = true;
-
-
-    const question =
-        battleQuestions[currentQuestion];
-
-
-    const answerButtons =
-        document.querySelectorAll(".answer");
-
-
-    answerButtons.forEach(
-        function (button) {
-
-            button.disabled = true;
-
-        }
-    );
-
-
-    if (selectedIndex === question.answer) {
-
-        selectedButton.classList.add("correct");
-
-        currentScore++;
-
-
-    } else {
-
-        selectedButton.classList.add("wrong");
-
-
-        if (answerButtons[question.answer]) {
-
-            answerButtons[question.answer]
-                .classList.add("correct");
-
-        }
-
-    }
-
-
-    const result =
-        document.getElementById("quizResult");
-
-
-    if (selectedIndex === question.answer) {
-
-        result.textContent =
-            "✓ Correct!";
-
-    } else {
-
-        result.textContent =
-            "✗ Incorrect";
-
-    }
-
-
-    setTimeout(
-        function () {
-
-            currentQuestion++;
-
-            showQuestion();
-
-        },
-        850
-    );
-
-}
-
-
-/* =========================================================
-   FINISH BATTLE
-========================================================= */
-
-async function finishBattle() {
+    /* ============================================
+       CHECK LOGIN
+    ============================================ */
 
     if (!currentStudent) {
-        closeBattle();
+
+        alert(
+            "Please create a student account or login first."
+        );
+
+        openLogin();
+
         return;
     }
 
-    const totalQuestions =
-        battleQuestions.length;
 
-    if (!requireSupabase("Your battle cannot be saved because the database connection is unavailable.")) {
-        closeBattle();
+    if (!activeLiveCompetition) {
+
+        alert(
+            "There is no active competition right now."
+        );
+
+        await loadLiveCompetition();
+
         return;
     }
 
-    /*
-        Persist the result in Supabase. The RPC performs the
-        battle insert and profile total update atomically.
-    */
-    const { data, error } = await supabaseClient.rpc(
-        "record_battle",
-        {
-            p_category: currentCategory,
-            p_score: currentScore,
-            p_total_questions: totalQuestions
+
+    try {
+
+        /* ============================================
+           GET CURRENT PROFILE
+        ============================================ */
+
+        const {
+            data: profile,
+            error: profileError
+        } =
+            await supabaseClient
+                .from("profiles")
+                .select(
+                    "id, name, email, institute_id"
+                )
+                .eq(
+                    "id",
+                    currentStudent.id
+                )
+                .single();
+
+
+        if (profileError) {
+
+            console.error(
+                "Profile error:",
+                profileError
+            );
+
+            alert(
+                "Unable to load your student profile."
+            );
+
+            return;
         }
-    );
 
-    if (error) {
-        console.error("Could not save battle:", error);
-        alert("Your battle could not be saved. Please check your internet connection and try again.");
-        closeBattle();
+
+        /* ============================================
+           MAKE SURE UNIVERSITY IS SELECTED
+        ============================================ */
+
+        if (!profile.institute_id) {
+
+            alert(
+                "Please select your university/institute before joining the competition."
+            );
+
+            openProfile();
+
+            return;
+        }
+
+
+        /* ============================================
+           CHECK WHETHER ALREADY JOINED
+        ============================================ */
+
+        const {
+            data: existingParticipant,
+            error: existingError
+        } =
+            await supabaseClient
+                .from(
+                    "live_participants"
+                )
+                .select("*")
+                .eq(
+                    "competition_id",
+                    activeLiveCompetition.id
+                )
+                .eq(
+                    "student_id",
+                    profile.id
+                )
+                .maybeSingle();
+
+
+        if (existingError) {
+
+            console.error(
+                "Participant check error:",
+                existingError
+            );
+
+            alert(
+                "Unable to check your competition registration."
+            );
+
+            return;
+        }
+
+
+        /* ============================================
+           ALREADY JOINED
+        ============================================ */
+
+        if (existingParticipant) {
+
+            activeLiveParticipant =
+                existingParticipant;
+
+
+            showLiveCompetitionWaitingRoom(
+                existingParticipant
+            );
+
+            return;
+        }
+
+
+        /* ============================================
+           JOIN COMPETITION
+        ============================================ */
+
+        const {
+            data: participant,
+            error: joinError
+        } =
+            await supabaseClient
+                .from(
+                    "live_participants"
+                )
+                .insert({
+
+                    competition_id:
+                        activeLiveCompetition.id,
+
+                    student_id:
+                        profile.id,
+
+                    institute_id:
+                        profile.institute_id,
+
+                    current_question: 1,
+
+                    score: 0,
+
+                    completed: false
+
+                })
+                .select()
+                .single();
+
+
+        if (joinError) {
+
+            console.error(
+                "Join competition error:",
+                joinError
+            );
+
+            alert(
+                "Unable to join the competition right now. Please try again."
+            );
+
+            return;
+        }
+
+
+        activeLiveParticipant =
+            participant;
+
+
+        console.log(
+            "Successfully joined live competition:",
+            participant
+        );
+
+
+        /* ============================================
+           SUCCESS
+        ============================================ */
+
+        showLiveCompetitionWaitingRoom(
+            participant
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Unexpected join competition error:",
+            error
+        );
+
+        alert(
+            "Something went wrong while joining the competition."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LIVE COMPETITION WAITING ROOM
+========================================================= */
+
+function showLiveCompetitionWaitingRoom(
+    participant
+) {
+
+    const container =
+        document.getElementById(
+            "liveCompetitionContent"
+        );
+
+
+    if (!container) {
         return;
     }
 
-    if (data) {
-        currentStudent.score = Number(data.total_score || 0);
-        currentStudent.battles = Number(data.total_battles || 0);
-    }
+
+    container.innerHTML = `
+
+        <div class="eyebrow">
+            ✅ REGISTERED
+        </div>
 
 
-    const questionText =
-        document.getElementById("questionText");
+        <h3>
+            You're in!
+        </h3>
 
 
-    const answers =
-        document.getElementById("answers");
+        <p>
+            You have successfully joined:
+        </p>
 
 
-    const result =
-        document.getElementById("quizResult");
+        <div class="competition-placeholder">
 
-
-    document.getElementById("questionNumber")
-        .textContent =
-        "Battle Complete";
-
-
-    document.getElementById("progressBar")
-        .style.width =
-        "100%";
-
-
-    questionText.innerHTML = `
-
-        <div style="
-            text-align:center;
-            padding:20px 0;
-        ">
-
-            <div style="
-                font-size:50px;
-                margin-bottom:15px;
-            ">
-                🏆
+            <div class="placeholder-icon">
+                🎓
             </div>
+
 
             <div>
-                Excellent battle, ${escapeHTML(currentStudent.name)}!
+
+                <strong>
+                    ${escapeLiveText(
+                        activeLiveCompetition.title
+                    )}
+                </strong>
+
+
+                <small>
+                    Waiting for the competition to start.
+                </small>
+
             </div>
 
         </div>
 
-    `;
 
+        <p>
+            When the competition starts,
+            your CBT test will appear here automatically.
+        </p>
 
-    answers.innerHTML = `
-
-        <div style="
-            padding:22px;
-            border:1px solid rgba(244,180,0,.25);
-            border-radius:15px;
-            background:rgba(244,180,0,.06);
-            text-align:center;
-        ">
-
-            <div style="
-                color:#9b9b9b;
-                font-size:13px;
-                margin-bottom:8px;
-            ">
-                YOUR SCORE
-            </div>
-
-            <div style="
-                color:#f4b400;
-                font-size:42px;
-                font-weight:800;
-            ">
-                ${currentScore}/${totalQuestions}
-            </div>
-
-        </div>
 
         <button
             class="primary-btn full"
-            onclick="closeBattle()"
+            onclick="loadLiveCompetition()"
         >
-            Back to Student Battle KHP
+            CHECK COMPETITION STATUS
         </button>
 
     `;
 
-
-    result.textContent =
-        `Total score added: ${currentScore} points`;
-
 }
 
 
 /* =========================================================
-   CLOSE BATTLE
+   ESCAPE LIVE COMPETITION TEXT
 ========================================================= */
 
-function closeBattle() {
+function escapeLiveText(value) {
 
-    document
-        .getElementById("battleModal")
-        .classList.remove("open");
+    if (
+        value === null ||
+        value === undefined
+    ) {
 
-
-    document.body.style.overflow = "";
-
-}
-
-
-/* =========================================================
-   SCROLL TO SECTION
-========================================================= */
-
-function scrollToSection(id) {
-
-    const section =
-        document.getElementById(id);
-
-
-    if (section) {
-
-        section.scrollIntoView({
-            behavior: "smooth"
-        });
+        return "";
 
     }
 
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
 }
 
 
 /* =========================================================
-   SHUFFLE ARRAY
+   LOAD LIVE COMPETITION AFTER PAGE LOAD
 ========================================================= */
 
-function shuffleArray(array) {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    for (
-        let i = array.length - 1;
-        i > 0;
-        i--
-    ) {
+        /*
+            Load immediately when the page opens.
+        */
 
-        const j =
-            Math.floor(
-                Math.random() * (i + 1)
+        loadLiveCompetition();
+
+
+        /*
+            Check every 10 seconds so the website
+            automatically changes from UPCOMING
+            to LIVE when Supabase changes the
+            competition status.
+        */
+
+        setInterval(
+            function () {
+
+                loadLiveCompetition();
+
+            },
+            10000
+        );
+
+    }
+);
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+async function loadLeaderboard() {
+
+    const section =
+        document.getElementById("leaderboardSection");
+
+    const container =
+        document.getElementById("leaderboard");
+
+
+    if (!section || !container) {
+        return;
+    }
+
+
+    if (!supabaseReady || !supabaseClient) {
+
+        section.hidden = true;
+
+        container.innerHTML = "";
+
+        return;
+    }
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.rpc(
+                "get_leaderboard",
+                {
+                    p_limit: 100
+                }
             );
 
 
-        [
-            array[i],
-            array[j]
-        ] = [
-            array[j],
-            array[i]
-        ];
+        if (error) {
+
+            console.error(
+                "Leaderboard load error:",
+                error
+            );
+
+            section.hidden = true;
+
+            return;
+        }
+
+
+        const rows =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        if (!rows.length) {
+
+            section.hidden = true;
+
+            container.innerHTML = "";
+
+            return;
+        }
+
+
+        section.hidden = false;
+
+
+        container.innerHTML =
+            rows.map(
+                function (student, index) {
+
+                    const position =
+                        index + 1;
+
+
+                    const medal =
+                        position === 1
+                            ? "🥇"
+                            : position === 2
+                                ? "🥈"
+                                : position === 3
+                                    ? "🥉"
+                                    : String(position)
+                                        .padStart(2, "0");
+
+
+                    return `
+
+                        <div class="leaderboard-row">
+
+                            <div class="leaderboard-rank">
+                                ${medal}
+                            </div>
+
+
+                            <div class="leaderboard-student">
+
+                                <strong>
+                                    ${escapeHTML(
+                                        student.name || "Student"
+                                    )}
+                                </strong>
+
+                                <span>
+                                    ${escapeHTML(
+                                        student.institute || "Other"
+                                    )}
+                                </span>
+
+                            </div>
+
+
+                            <div class="leaderboard-score">
+
+                                <strong>
+                                    ${Number(
+                                        student.total_score || 0
+                                    )}
+                                </strong>
+
+                                <span>
+                                    points
+                                </span>
+
+                            </div>
+
+
+                            <div class="leaderboard-battles">
+
+                                ${Number(
+                                    student.total_battles || 0
+                                )}
+                                battle${Number(
+                                    student.total_battles || 0
+                                ) === 1 ? "" : "s"}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            ).join("");
+
+
+    } catch (error) {
+
+        console.error(
+            "Leaderboard unexpected error:",
+            error
+        );
+
+        section.hidden = true;
 
     }
-
-
-    return array;
 
 }
 
@@ -3060,210 +3633,6 @@ function escapeHTML(value) {
     return div.innerHTML;
 
 }
-
-
-/* =========================================================
-   LEADERBOARD
-
-   The leaderboard is data-driven. It remains completely hidden
-   until at least one completed battle exists in Supabase.
-   No demo names or fake scores are ever rendered.
-========================================================= */
-
-async function loadLeaderboard() {
-
-    const section = document.getElementById("leaderboardSection");
-    const container = document.getElementById("leaderboard");
-
-    if (!section || !container) {
-        return;
-    }
-
-    if (!supabaseReady || !supabaseClient) {
-        section.hidden = true;
-        container.innerHTML = "";
-        return;
-    }
-
-    const { data, error } = await supabaseClient.rpc(
-        "get_leaderboard",
-        { p_limit: 100 }
-    );
-
-    if (error) {
-        console.error("Leaderboard load error:", error);
-        section.hidden = true;
-        return;
-    }
-
-    const rows = Array.isArray(data) ? data : [];
-
-    if (!rows.length) {
-        section.hidden = true;
-        container.innerHTML = "";
-        return;
-    }
-
-    section.hidden = false;
-
-    container.innerHTML = rows.map(function (student, index) {
-        const position = index + 1;
-        const medal = position === 1 ? "🥇" : position === 2 ? "🥈" : position === 3 ? "🥉" : String(position).padStart(2, "0");
-
-        return `
-            <div class="leaderboard-row">
-                <div class="leaderboard-rank">${medal}</div>
-                <div class="leaderboard-student">
-                    <strong>${escapeHTML(student.name || "Student")}</strong>
-                    <span>${escapeHTML(student.institute || "Other")}</span>
-                </div>
-                <div class="leaderboard-score">
-                    <strong>${Number(student.total_score || 0)}</strong>
-                    <span>points</span>
-                </div>
-                <div class="leaderboard-battles">
-                    ${Number(student.total_battles || 0)} battle${Number(student.total_battles || 0) === 1 ? "" : "s"}
-                </div>
-            </div>
-        `;
-    }).join("");
-}
-
-
-/* =========================================================
-   CLOSE MODALS WHEN CLICKING OUTSIDE
-========================================================= */
-
-document.addEventListener(
-    "click",
-    function (event) {
-
-        const registration =
-            document.getElementById(
-                "registrationModal"
-            );
-
-
-        const profile =
-            document.getElementById(
-                "profileModal"
-            );
-
-
-        const login =
-            document.getElementById(
-                "loginModal"
-            );
-
-
-        const battle =
-            document.getElementById(
-                "battleModal"
-            );
-
-
-        if (
-            event.target === registration
-        ) {
-
-            closeRegistration();
-
-        }
-
-
-        if (
-            event.target === profile
-        ) {
-
-            closeProfile();
-
-        }
-
-
-        if (
-            event.target === login
-        ) {
-
-            closeLogin();
-
-        }
-
-
-        /*
-            Don't allow accidental outside-click
-            closing during an active quiz.
-        */
-
-    }
-);
-
-
-/* =========================================================
-   ESC KEY
-========================================================= */
-
-document.addEventListener(
-    "keydown",
-    function (event) {
-
-        if (event.key !== "Escape") {
-            return;
-        }
-
-
-        const registration =
-            document.getElementById(
-                "registrationModal"
-            );
-
-
-        const profile =
-            document.getElementById(
-                "profileModal"
-            );
-
-
-        const login =
-            document.getElementById(
-                "loginModal"
-            );
-
-
-        /*
-            Do not close an active battle with Escape.
-        */
-
-        if (
-            registration.classList.contains("open")
-        ) {
-
-            closeRegistration();
-
-            return;
-
-        }
-
-
-        if (
-            profile.classList.contains("open")
-        ) {
-
-            closeProfile();
-            return;
-
-        }
-
-
-        if (
-            login.classList.contains("open")
-        ) {
-
-            closeLogin();
-
-        }
-
-    }
-);
 
 
 /* =========================================================
