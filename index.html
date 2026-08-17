@@ -63,12 +63,9 @@
 
             <div id="userArea">
 
-                <button
-                    class="nav-cta"
-                    onclick="openRegistration()"
-                >
-                    Join Battle
-                </button>
+              <button class="primary-btn full" onclick="openRegistration()">
+    Join Student Battle
+</button>
 
             </div>
 
@@ -154,39 +151,73 @@
             </div>
 
 
-            <!-- COMPETITION STATUS CARD -->
+          <!-- ===============================
+     COMPETITION STATUS CARD
+================================ -->
 
-            <div class="hero-card">
+<div class="hero-card">
 
-                <div class="card-glow"></div>
+    <div class="card-glow"></div>
 
-                <div class="battle-card-top">
-                    <span>COMPETITION STATUS</span>
-                    <span class="status-dot">●</span>
-                </div>
+    <div class="battle-card-top">
 
-                <h3>No live competition yet</h3>
+        <span>COMPETITION STATUS</span>
 
-                <p>
-                    Official head-to-head results and the leaderboard will appear here
-                    after a real Student Battle KHP competition has been completed.
-                </p>
+        <span class="status-dot">●</span>
 
-                <div class="competition-placeholder">
-                    <div class="placeholder-icon">⚔</div>
-                    <div>
-                        <strong>Be ready for the challenge</strong>
-                        <small>Register your student profile and explore the available battles.</small>
-                    </div>
-                </div>
+    </div>
 
-                <button class="primary-btn full" onclick="openRegistration()">
-                    Join Student Battle
-                </button>
+
+    <!-- LIVE COMPETITION CONTENT
+         This area is controlled by script.js.
+    -->
+
+    <div id="liveCompetitionContent">
+
+        <div class="eyebrow">
+            ⚔ LIVE COMPETITION
+        </div>
+
+        <h3>
+            Checking competition...
+        </h3>
+
+        <p>
+            Please wait while we check the current Student Battle KHP competition.
+        </p>
+
+        <div class="competition-placeholder">
+
+            <div class="placeholder-icon">
+                ⚔
+            </div>
+
+            <div>
+
+                <strong>
+                    Live Competition
+                </strong>
+
+                <small>
+                    Checking the competition status...
+                </small>
 
             </div>
 
-        </section>
+        </div>
+
+        <button
+            class="primary-btn full"
+            onclick="loadLiveCompetition()"
+        >
+            CHECK COMPETITION
+        </button>
+
+    </div>
+
+</div>
+
+</section>
 
         <!-- ===============================
              INSTITUTES
