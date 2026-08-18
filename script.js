@@ -3636,5 +3636,37 @@ function escapeHTML(value) {
 
 
 /* =========================================================
+   NAVIGATION
+========================================================= */
+
+function scrollToSection(sectionId) {
+
+    const section =
+        document.getElementById(sectionId);
+
+
+    if (!section) {
+
+        console.error(
+            "Section not found:",
+            sectionId
+        );
+
+        return;
+    }
+
+
+    section.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start"
+
+    });
+
+}
+
+
+/* =========================================================
    END
 ========================================================= */
