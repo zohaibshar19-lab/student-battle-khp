@@ -217,11 +217,306 @@ main{width:100%}
 
 /* RESPONSIVE */
 @media(max-width:980px){.site-header{padding-left:4%;padding-right:4%}.hero{grid-template-columns:1fr;width:min(720px,90%);padding-top:70px;gap:48px}.hero-card{max-width:620px}.institute-grid,.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.section{width:min(720px,90%)}}
-@media(max-width:700px){.site-header{min-height:68px;padding:11px 4%}.brand-mark{width:39px;height:39px;flex-basis:39px;border-radius:11px;font-size:19px}.brand-title{font-size:14px}.brand-subtitle{font-size:9px}.nav{gap:3px}.nav>button:not(.nav-cta){display:inline-flex}#userArea{margin-left:3px}.nav-cta{min-height:39px;padding:9px 12px;font-size:11px}.hero{width:90%;min-height:auto;padding:65px 0 55px;gap:42px}.hero h1{font-size:clamp(43px,12vw,58px);letter-spacing:-2px}.hero-copy>p{font-size:14px}.hero-actions{flex-direction:column;align-items:stretch}.hero-actions .primary-btn,.hero-actions .secondary-btn{width:100%}.hero-stats{margin-top:31px}.hero-stats>div{padding-right:18px;margin-right:18px}.hero-stats strong{font-size:21px}.hero-stats span{font-size:9px}.hero-card{padding:25px;border-radius:22px}.hero-card h3{font-size:25px}.section{width:90%;padding:68px 0}.section-heading{margin-bottom:25px}.section-heading h2{font-size:36px}.institute-grid,.category-grid{grid-template-columns:1fr}.institute-card{min-height:190px}.category-card{min-height:155px}.modal-overlay{padding:14px}.modal-box{max-height:94vh;padding:28px 20px;border-radius:22px}.auth-box{padding:25px 20px 21px}.modal-box h2{font-size:28px}.battle-top{align-items:flex-start;flex-direction:column;gap:13px;padding-right:30px}.battle-top h2{font-size:27px}.question-text{font-size:19px}.answer{min-height:51px;padding:13px;font-size:12px}.profile-details>div{align-items:flex-start;flex-direction:column;gap:4px}.profile-details strong{max-width:100%;text-align:left}}
-@media(max-width:420px){.site-header{padding:10px 3.5%}.brand-subtitle{display:none}.brand-title{font-size:13px}.nav-cta{padding:8px 10px;font-size:10px}.hero h1{font-size:40px;letter-spacing:-1.5px}.hero-stats{row-gap:18px}.hero-stats>div{margin-right:16px;padding-right:16px}.hero-card{padding:21px}.versus{gap:8px}.avatar{width:54px;height:54px;border-radius:15px;font-size:21px}.vs{width:36px;height:36px;font-size:9px}.section-heading h2{font-size:32px}.modal-box{padding:25px 17px}.auth-box{padding:23px 17px 19px}.modal-icon{width:52px;height:52px;font-size:23px}.modal-box h2{font-size:26px}}
-@media(max-width:340px){.brand-mark{width:35px;height:35px;flex-basis:35px}.brand-title{font-size:12px}.nav-cta{padding:8px 9px;font-size:9px}.hero h1{font-size:36px}.hero-stats>div{border-right:0;padding-right:10px;margin-right:10px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
+@media(max-width:700px){
+.site-header{
+    min-height:68px;
+    padding:11px 4%;
+}
+
+.brand-mark{
+    width:39px;
+    height:39px;
+    flex-basis:39px;
+    border-radius:11px;
+    font-size:19px;
+}
+
+.brand-title{
+    font-size:14px;
+    white-space:nowrap;
+}
+
+.brand-subtitle{
+    font-size:9px;
+}
+
+.nav{
+    gap:3px;
+    flex-shrink:0;
+}
+
+.nav>button:not(.nav-cta){
+    display:inline-flex;
+    padding:7px 5px;
+    font-size:9px;
+    white-space:nowrap;
+}
+
+#userArea{
+    margin-left:3px;
+    flex-shrink:0;
+}
+
+.nav-cta{
+    min-height:39px;
+    padding:9px 10px;
+    font-size:10px;
+    white-space:nowrap;
+}
+
+.hero{
+    width:90%;
+    min-height:auto;
+    padding:65px 0 55px;
+    gap:42px;
+}
+
+.hero h1{
+    font-size:clamp(43px,12vw,58px);
+    letter-spacing:-2px;
+}
+
+.hero-copy>p{
+    font-size:14px;
+}
+
+.hero-actions{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+.hero-actions .primary-btn,
+.hero-actions .secondary-btn{
+    width:100%;
+}
+
+.hero-stats{
+    margin-top:31px;
+}
+
+.hero-stats>div{
+    padding-right:18px;
+    margin-right:18px;
+}
+
+.hero-stats strong{
+    font-size:21px;
+}
+
+.hero-stats span{
+    font-size:9px;
+}
+
+.hero-card{
+    padding:25px;
+    border-radius:22px;
+}
+
+.hero-card h3{
+    font-size:25px;
+}
+
+.section{
+    width:90%;
+    padding:68px 0;
+}
+
+.section-heading{
+    margin-bottom:25px;
+}
+
+.section-heading h2{
+    font-size:36px;
+}
+
+.institute-grid,
+.category-grid{
+    grid-template-columns:1fr;
+}
+
+.institute-card{
+    min-height:190px;
+}
+
+.category-card{
+    min-height:155px;
+}
+
+.modal-overlay{
+    padding:14px;
+}
+
+.modal-box{
+    max-height:94vh;
+    padding:28px 20px;
+    border-radius:22px;
+}
+
+.auth-box{
+    padding:25px 20px 21px;
+}
+
+.modal-box h2{
+    font-size:28px;
+}
+
+.battle-top{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:13px;
+    padding-right:30px;
+}
+
+.battle-top h2{
+    font-size:27px;
+}
+
+.question-text{
+    font-size:19px;
+}
+
+.answer{
+    min-height:51px;
+    padding:13px;
+    font-size:12px;
+}
+
+.profile-details>div{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+}
+
+.profile-details strong{
+    max-width:100%;
+    text-align:left;
+}
+}
+
+@media(max-width:420px){
+.site-header{
+    padding:10px 3.5%;
+}
+
+.brand-subtitle{
+    display:none;
+}
+
+.brand-title{
+    font-size:12px;
+    white-space:nowrap;
+}
+
+.nav{
+    gap:2px;
+}
+
+.nav>button:not(.nav-cta){
+    padding:6px 3px;
+    font-size:8px;
+}
+
+.nav-cta{
+    padding:8px 7px;
+    font-size:9px;
+}
+
+.hero h1{
+    font-size:40px;
+    letter-spacing:-1.5px;
+}
+
+.hero-stats{
+    row-gap:18px;
+}
+
+.hero-stats>div{
+    margin-right:16px;
+    padding-right:16px;
+}
+
+.hero-card{
+    padding:21px;
+}
+
+.versus{
+    gap:8px;
+}
+
+.avatar{
+    width:54px;
+    height:54px;
+    border-radius:15px;
+    font-size:21px;
+}
+
+.vs{
+    width:36px;
+    height:36px;
+    font-size:9px;
+}
+
+.section-heading h2{
+    font-size:32px;
+}
+
+.modal-box{
+    padding:25px 17px;
+}
+
+.auth-box{
+    padding:23px 17px 19px;
+}
+
+.modal-icon{
+    width:52px;
+    height:52px;
+    font-size:23px;
+}
+
+.modal-box h2{
+    font-size:26px;
+}
+}
+
+@media(max-width:340px){
+.brand-mark{
+    width:35px;
+    height:35px;
+    flex-basis:35px;
+}
+
+.brand-title{
+    font-size:11px;
+}
+
+.nav{
+    gap:1px;
+}
+
+.nav>button:not(.nav-cta){
+    padding:5px 2px;
+    font-size:7px;
+}
+
+.nav-cta{
+    padding:8px 5px;
+    font-size:8px;
+}
+
+.hero h1{
+    font-size:36px;
+}
+
+.hero-stats>div{
+    border-right:0;
+    padding-right:10px;
+    margin-right:10px;
+}
+}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* =========================================================
    COMPETITION STATUS / REAL DATA ONLY
 ========================================================= */
