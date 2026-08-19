@@ -265,6 +265,19 @@ main{width:100%}
         font-weight:700;
 
         white-space:nowrap;
+
+        gap:3px;
+    }
+
+    /* SMALL NAV ICONS */
+    .nav>button:not(.nav-cta) i,
+    .nav>button:not(.nav-cta) svg,
+    .nav>button:not(.nav-cta) img{
+        width:12px !important;
+        height:12px !important;
+        font-size:12px !important;
+        flex:0 0 12px !important;
+        margin:0 !important;
     }
 
     #userArea{
@@ -281,6 +294,17 @@ main{width:100%}
         white-space:nowrap;
     }
 
+    /* LOGIN BUTTON ICON */
+    .nav-cta i,
+    .nav-cta svg,
+    .nav-cta img{
+        width:12px !important;
+        height:12px !important;
+        font-size:12px !important;
+        flex:0 0 12px !important;
+        margin:0 !important;
+    }
+}
     .hero{
         width:90%;
         min-height:auto;
