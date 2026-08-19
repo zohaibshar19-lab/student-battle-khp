@@ -3,54 +3,77 @@
    COMPLETE SCRIPT.JS
 ========================================================= */
 
-
-/* =========================================================
-   STUDENT DATA
-========================================================= */
-
 /* =========================================================
    SUPABASE
-   Student/profile/battle data is stored in Supabase.
-   Student/profile data is stored in Supabase only.
 ========================================================= */
 
-const SUPABASE_URL = "https://pndxiccvlmrnfhdefndr.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vmd57FS2ifya67M1egLOfw_a2lDnyJa";
+const SUPABASE_URL =
+    "https://pndxiccvlmrnfhdefndr.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_vmd57FS2ifya67M1egLOfw_a2lDnyJa";
 
 let supabaseClient = null;
 let supabaseReady = false;
 
 try {
-    if (window.supabase && typeof window.supabase.createClient === "function") {
-        supabaseClient = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_PUBLISHABLE_KEY,
-            {
-                auth: {
-                    persistSession: true,
-                    autoRefreshToken: true,
-                    detectSessionInUrl: true
+
+    if (
+        window.supabase &&
+        typeof window.supabase.createClient === "function"
+    ) {
+
+        supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_PUBLISHABLE_KEY,
+                {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                        detectSessionInUrl: true
+                    }
                 }
-            }
-        );
+            );
+
         supabaseReady = true;
     }
+
 } catch (error) {
-    console.error("Supabase initialization failed:", error);
+
+    console.error(
+        "Supabase initialization failed:",
+        error
+    );
+
 }
 
-function requireSupabase(message = "The online service is unavailable right now. Please try again in a moment.") {
-    if (supabaseReady && supabaseClient) return true;
+
+function requireSupabase(
+    message =
+        "The online service is unavailable right now. Please try again in a moment."
+) {
+
+    if (
+        supabaseReady &&
+        supabaseClient
+    ) {
+        return true;
+    }
+
     console.error(message);
+
     alert(message);
+
     return false;
 }
+
 
 let currentStudent = null;
 
 
 /* =========================================================
-   QUIZ STATE
+   NORMAL QUIZ STATE
 ========================================================= */
 
 let currentCategory = "";
@@ -371,10 +394,6 @@ const questionBank = {
 
     ],
 
-
-    /* =====================================================
-       COMPUTER SCIENCE
-    ===================================================== */
 
     "Computer Science": [
 
@@ -761,10 +780,6 @@ const questionBank = {
     ],
 
 
-    /* =====================================================
-       MATHEMATICS
-    ===================================================== */
-
     "Mathematics": [
 
         {
@@ -1063,10 +1078,6 @@ const questionBank = {
 
     ],
 
-
-    /* =====================================================
-       ENGLISH
-    ===================================================== */
 
     "English": [
 
@@ -1407,10 +1418,6 @@ const questionBank = {
 
     ],
 
-
-    /* =====================================================
-       PAKISTAN STUDIES
-    ===================================================== */
 
     "Pakistan Studies": [
 
@@ -1763,10 +1770,6 @@ const questionBank = {
     ],
 
 
-    /* =====================================================
-       CURRENT AFFAIRS
-    ===================================================== */
-
     "Current Affairs": [
 
         {
@@ -2113,589 +2116,45 @@ const questionBank = {
 
 };
 
-
 /* =========================================================
-   MAKE SURE EACH CATEGORY HAS 50 QUESTIONS
-========================================================= */
-
-Object.keys(questionBank).forEach(category => {
-
-    /*
-        If a category has fewer than 50 questions,
-        duplicate the existing questions until there
-        are 50.
-
-        This keeps the quiz system working while you
-        replace/add your final original questions later.
-    */
-
-    const questions = questionBank[category];
-
-    if (questions.length > 0) {
-
-        let index = 0;
-
-        while (questions.length < 50) {
-
-            const original = questions[index % questions.length];
-
-            questions.push({
-                q: original.q,
-                options: [...original.options],
-                answer: original.answer
-            });
-
-            index++;
-        }
-
-    }
-
-});
-
-
-/* =========================================================
-   AUTH / PAGE INITIALIZATION
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", async function () {
-
-    setupRegistration();
-    setupLogin();
-    updateUserArea();
-
-    if (!supabaseReady) {
-        console.warn("Student Battle is running in offline UI mode because Supabase could not be initialized.");
-        return;
-    }
-
-    try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-
-        if (session?.user) {
-            await loadCurrentStudent(session.user);
-        }
-
-        updateUserArea();
-        await loadLeaderboard();
-
-        supabaseClient.auth.onAuthStateChange(async function (_event, session) {
-            if (session?.user) {
-                await loadCurrentStudent(session.user);
-            } else {
-                currentStudent = null;
-            }
-            updateUserArea();
-            await loadLeaderboard();
-        });
-    } catch (error) {
-        console.error("Supabase startup error:", error);
-        updateUserArea();
-    }
-});
-
-
-/* =========================================================
-   REGISTRATION
-========================================================= */
-
-function setupRegistration() {
-
-    const form =
-        document.getElementById("registrationForm");
-
-    if (!form) {
-        return;
-    }
-
-    form.addEventListener("submit", async function (event) {
-
-        event.preventDefault();
-
-        if (!requireSupabase("Registration is unavailable because the database connection is not ready.")) return;
-
-        const name =
-            document.getElementById("studentName")
-                .value
-                .trim();
-
-        const institute =
-            document.getElementById("studentInstitute")
-                .value;
-
-        const email =
-            document.getElementById("studentEmail")
-                .value
-                .trim()
-                .toLowerCase();
-
-        const password =
-            document.getElementById("studentPassword")
-                .value;
-
-        const submitButton =
-            form.querySelector("button[type='submit']");
-
-        if (!name || !institute || !email || !password) {
-            showAuthMessage("Please complete all fields.", "error", "registrationModal");
-            return;
-        }
-
-        if (password.length < 6) {
-            showAuthMessage("Password must contain at least 6 characters.", "error", "registrationModal");
-            return;
-        }
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Creating account...";
-
-        const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: name,
-                    institute
-                }
-            }
-        });
-
-        submitButton.disabled = false;
-        submitButton.textContent = "Create Student Profile";
-
-        if (error) {
-            showAuthMessage(error.message, "error", "registrationModal");
-            return;
-        }
-
-        form.reset();
-
-        if (data.session && data.user) {
-            await loadCurrentStudent(data.user);
-            closeRegistration();
-            updateUserArea();
-            alert(`Welcome ${name}! You are now representing ${institute}.`);
-        } else {
-            closeRegistration();
-            alert("Account created successfully. Please check your email to confirm your account, then log in.");
-            openLogin();
-        }
-    });
-}
-
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-function setupLogin() {
-
-    const form =
-        document.getElementById("loginForm");
-
-    if (!form) {
-        return;
-    }
-
-    form.addEventListener("submit", async function (event) {
-
-        event.preventDefault();
-
-        if (!requireSupabase("Login is unavailable because the database connection is not ready.")) return;
-
-        const email =
-            document.getElementById("loginEmail")
-                .value
-                .trim()
-                .toLowerCase();
-
-        const password =
-            document.getElementById("loginPassword")
-                .value;
-
-        const submitButton =
-            form.querySelector("button[type='submit']");
-
-        if (!email || !password) {
-            showAuthMessage("Please enter your email and password.", "error", "loginModal");
-            return;
-        }
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Signing in...";
-
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-                email,
-                password
-            });
-
-        submitButton.disabled = false;
-        submitButton.textContent = "Login";
-
-        if (error) {
-            showAuthMessage(error.message, "error", "loginModal");
-            return;
-        }
-
-        if (data.user) {
-            await loadCurrentStudent(data.user);
-        }
-
-        form.reset();
-        closeLogin();
-        updateUserArea();
-    });
-}
-
-
-function showAuthMessage(message, type = "info", modalId = "") {
-
-    const scope = modalId
-        ? document.getElementById(modalId)
-        : document;
-
-    const element = scope
-        ? scope.querySelector(".auth-message")
-        : null;
-
-    if (!element) {
-        return;
-    }
-
-    element.textContent = message;
-    element.className = `auth-message ${type}`;
-}
-
-
-/* =========================================================
-   LOAD PROFILE FROM DATABASE
-========================================================= */
-
-async function loadCurrentStudent(user) {
-
-    if (!supabaseReady || !supabaseClient) {
-        currentStudent = null;
-        return;
-    }
-
-    if (!user) {
-        currentStudent = null;
-        return;
-    }
-
-    const { data, error } = await supabaseClient
-        .from("profiles")
-        .select("id, full_name, institute, email, total_score, total_battles")
-        .eq("id", user.id)
-        .single();
-
-    if (error) {
-        console.error("Could not load student profile:", error);
-        currentStudent = null;
-        return;
-    }
-
-    currentStudent = {
-        id: data.id,
-        name: data.full_name,
-        institute: data.institute,
-        email: data.email,
-        score: Number(data.total_score || 0),
-        battles: Number(data.total_battles || 0)
-    };
-}
-
-
-/* =========================================================
-   OPEN / CLOSE AUTH MODALS
-========================================================= */
-
-function openRegistration() {
-
-    if (currentStudent) {
-        openProfile();
-        return;
-    }
-
-    closeLogin();
-
-    document
-        .getElementById("registrationModal")
-        .classList.add("open");
-
-    document.body.style.overflow = "hidden";
-}
-
-
-function closeRegistration() {
-
-    document
-        .getElementById("registrationModal")
-        .classList.remove("open");
-
-    document.body.style.overflow = "";
-}
-
-
-function openLogin() {
-
-    if (currentStudent) {
-        openProfile();
-        return;
-    }
-
-    closeRegistration();
-
-    document
-        .getElementById("loginModal")
-        .classList.add("open");
-
-    document.body.style.overflow = "hidden";
-}
-
-
-function closeLogin() {
-
-    const modal = document.getElementById("loginModal");
-
-    if (modal) {
-        modal.classList.remove("open");
-    }
-
-    document.body.style.overflow = "";
-}
-
-
-function switchToLogin() {
-    closeRegistration();
-    openLogin();
-}
-
-
-function switchToRegistration() {
-    closeLogin();
-    openRegistration();
-}
-
-
-/* =========================================================
-   PROFILE
-========================================================= */
-
-function openProfile() {
-
-    if (!currentStudent) {
-        openLogin();
-        return;
-    }
-
-    document.getElementById("profileName")
-        .textContent =
-        currentStudent.name;
-
-    document.getElementById("profileInstitute")
-        .textContent =
-        currentStudent.institute;
-
-    document.getElementById("profileEmail")
-        .textContent =
-        currentStudent.email;
-
-    document.getElementById("profileScore")
-        .textContent =
-        currentStudent.score || 0;
-
-    document.getElementById("profileBattles")
-        .textContent =
-        currentStudent.battles || 0;
-
-    document
-        .getElementById("profileModal")
-        .classList.add("open");
-
-    document.body.style.overflow = "hidden";
-}
-
-
-function closeProfile() {
-
-    document
-        .getElementById("profileModal")
-        .classList.remove("open");
-
-    document.body.style.overflow = "";
-}
-
-
-/* =========================================================
-   LOGOUT
-========================================================= */
-
-async function logoutStudent() {
-
-    if (!requireSupabase("Logout is unavailable because the database connection is not ready.")) return;
-
-    const confirmLogout =
-        confirm("Are you sure you want to logout?");
-
-    if (!confirmLogout) {
-        return;
-    }
-
-    const { error } = await supabaseClient.auth.signOut();
-
-    if (error) {
-        alert(error.message);
-        return;
-    }
-
-    currentStudent = null;
-    closeProfile();
-    updateUserArea();
-}
-
-
-/* =========================================================
-   UPDATE NAVIGATION USER AREA
-========================================================= */
-
-function updateUserArea() {
-
-    const userArea =
-        document.getElementById("userArea");
-
-    if (!userArea) {
-        return;
-    }
-
-    if (currentStudent) {
-
-        userArea.innerHTML = `
-            <button
-                class="nav-cta"
-                onclick="openProfile()"
-            >
-                ${escapeHTML(currentStudent.name)}
-            </button>
-        `;
-
-    } else {
-
-        userArea.innerHTML = `
-            <button
-                class="nav-cta"
-                onclick="openLogin()"
-            >
-                Login
-            </button>
-        `;
-    }
-}
-
-
-/* =========================================================
-   START BATTLE
-========================================================= */
-
-function startBattle(category) {
-
-    if (!currentStudent) {
-
-        alert(
-            "Please create your student profile before starting a battle."
-        );
-
-        openRegistration();
-
-        return;
-    }
-
-
-    if (!questionBank[category]) {
-
-        alert("This battle category is not available.");
-
-        return;
-    }
-
-
-    currentCategory = category;
-
-    currentQuestion = 0;
-
-    currentScore = 0;
-
-    answerLocked = false;
-
-
-    /*
-        Copy questions instead of modifying the original array.
-    */
-
-    battleQuestions =
-        [...questionBank[category]];
-
-
-    /*
-        Shuffle the questions so every battle can
-        appear in a different order.
-    */
-
-    shuffleArray(battleQuestions);
-
-
-    /*
-        Keep exactly 50 questions for normal
-        category battles.
-
-        NOTE:
-        This does NOT affect the LIVE competition.
-        The live competition has its own questions.
-    */
-
-    battleQuestions =
-        battleQuestions.slice(0, 50);
-
-
-    document.getElementById("battleTitle")
-        .textContent =
-        category;
-
-
-    document
-        .getElementById("battleModal")
-        .classList.add("open");
-
-
-    document.body.style.overflow = "hidden";
-
-
-    showQuestion();
-
-}
-
-/* =========================================================
-   LIVE COMPETITION
-   Real-time synchronized competition
+   LIVE COMPETITION STATE
 ========================================================= */
 
 /*
     IMPORTANT:
-    Keep ONLY ONE declaration of these variables
-    in script.js.
+
+    The live competition uses:
+
+    live_competitions
+    live_competition_questions
+    live_participants
+    live_answers
+
+    Each student has their OWN:
+
+    live_participants.current_question
+    live_participants.score
+    live_participants.completed
+    live_participants.question_started_at
+
+    Therefore students can move independently.
 */
 
 let activeLiveCompetition = null;
+
 let activeLiveParticipant = null;
 
-let liveQuestionTimer = null;
-let liveRealtimeChannel = null;
-let liveTimeRemaining = 60;
+let liveCurrentQuestion = null;
 
-let liveQuestions = [];
-let liveCurrentQuestion = 0;
-let liveScore = 0;
+let liveQuestionNumber = 1;
+
+let liveTimer = null;
+
+let liveSecondsRemaining = 60;
+
 let liveAnswerLocked = false;
+
+let liveCompetitionFinished = false;
 
 
 /* =========================================================
@@ -2705,88 +2164,145 @@ let liveAnswerLocked = false;
 async function loadLiveCompetition() {
 
     const container =
-        document.getElementById("liveCompetitionContent");
+        document.getElementById(
+            "liveCompetitionContent"
+        );
 
 
     if (!container) {
 
         console.error(
-            "liveCompetitionContent element not found."
+            "liveCompetitionContent element was not found."
         );
 
         return;
+
     }
 
 
-    if (!requireSupabase()) {
-
-        console.error(
-            "Supabase is not ready."
-        );
+    if (
+        !requireSupabase(
+            "Live competition is unavailable because the database connection is not ready."
+        )
+    ) {
 
         return;
+
     }
+
+
+    container.innerHTML = `
+
+        <div class="eyebrow">
+            ⚔ LIVE COMPETITION
+        </div>
+
+        <h3>
+            Checking competition...
+        </h3>
+
+        <p>
+            Please wait while we check the current competition.
+        </p>
+
+    `;
 
 
     try {
 
-        /* =====================================================
-           FIRST: CHECK FOR A LIVE COMPETITION
-        ===================================================== */
+        /*
+            Get the newest competition.
+
+            We DO NOT use live_competitions.current_question
+            to control individual students.
+        */
 
         const {
-            data: liveCompetition,
-            error: liveError
+            data: competition,
+            error
         } =
             await supabaseClient
-                .from("live_competitions")
-                .select("*")
-                .eq("status", "live")
-                .order("started_at", {
-                    ascending: false
-                })
-                .limit(1)
+                .from(
+                    "live_competitions"
+                )
+                .select(
+                    "*"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                )
+                .limit(
+                    1
+                )
                 .maybeSingle();
 
 
-        if (liveError) {
+        if (error) {
 
             console.error(
-                "Live competition error:",
-                liveError
+                "Could not load live competition:",
+                error
             );
+
+            container.innerHTML = `
+
+                <div class="competition-placeholder">
+
+                    <div class="placeholder-icon">
+                        ⚠️
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            No results
+                        </strong>
+
+                        <small>
+                            Could not load the live competition.
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="primary-btn full"
+                    onclick="loadLiveCompetition()"
+                >
+                    TRY AGAIN
+                </button>
+
+            `;
+
+            return;
 
         }
 
 
-        /* =====================================================
-           IF COMPETITION IS LIVE
-        ===================================================== */
-
-        if (liveCompetition) {
+        if (!competition) {
 
             activeLiveCompetition =
-                liveCompetition;
+                null;
 
 
             container.innerHTML = `
 
                 <div class="eyebrow">
-                    🔴 LIVE NOW
+                    ⚔ LIVE COMPETITION
                 </div>
 
-
                 <h3>
-                    ${escapeLiveText(
-                        liveCompetition.title
-                    )}
+                    No competition available
                 </h3>
 
-
                 <p>
-                    The competition is live now!
+                    There is currently no Student Battle competition.
                 </p>
-
 
                 <div class="competition-placeholder">
 
@@ -2794,229 +2310,166 @@ async function loadLiveCompetition() {
                         ⚔
                     </div>
 
-
                     <div>
 
                         <strong>
-                            Competition in progress
+                            No active competition
                         </strong>
 
-
                         <small>
-                            ${Number(
-                                liveCompetition.total_questions || 100
-                            )}
-                            questions —
-                            1 minute per question.
+                            Please check again later.
                         </small>
 
                     </div>
 
                 </div>
 
-
                 <button
+                    type="button"
                     class="primary-btn full"
-                    onclick="joinLiveCompetition()"
+                    onclick="loadLiveCompetition()"
                 >
-                    ENTER COMPETITION
+                    CHECK AGAIN
                 </button>
 
             `;
 
-
             return;
+
         }
 
 
-        /* =====================================================
-           SECOND: CHECK FOR UPCOMING COMPETITION
-        ===================================================== */
-
-        const {
-            data: upcomingCompetition,
-            error: upcomingError
-        } =
-            await supabaseClient
-                .from("live_competitions")
-                .select("*")
-                .eq("status", "waiting")
-                .not(
-                    "scheduled_start",
-                    "is",
-                    null
-                )
-                .order("scheduled_start", {
-                    ascending: true
-                })
-                .limit(1)
-                .maybeSingle();
+        activeLiveCompetition =
+            competition;
 
 
-        /* =====================================================
-           CHECK UPCOMING COMPETITION ERROR
-        ===================================================== */
-
-        if (upcomingError) {
-
-            console.error(
-                "Upcoming competition error:",
-                upcomingError
-            );
-
-            throw upcomingError;
-        }
+        const status =
+            String(
+                competition.status ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
 
 
-        /* =====================================================
-           NO UPCOMING COMPETITION
-        ===================================================== */
+        /*
+            FINISHED
+        */
 
-        if (!upcomingCompetition) {
-
-            activeLiveCompetition = null;
-
+        if (
+            status === "finished" ||
+            status === "completed" ||
+            status === "ended"
+        ) {
 
             container.innerHTML = `
 
+                <div class="eyebrow">
+                    ⚔ LIVE COMPETITION
+                </div>
+
                 <h3>
-                    No competition scheduled
+                    Competition finished
                 </h3>
 
-
                 <p>
-                    There is currently no upcoming or live
-                    Student Battle KHP competition.
+                    This competition has already finished.
                 </p>
-
 
                 <div class="competition-placeholder">
 
                     <div class="placeholder-icon">
-                        ⚔
+                        🏆
                     </div>
-
 
                     <div>
 
                         <strong>
-                            Stay ready for the challenge
+                            Competition Complete
                         </strong>
 
-
                         <small>
-                            A new competition will appear here
-                            when it is scheduled.
+                            Results are available after completion.
                         </small>
 
                     </div>
 
                 </div>
 
-
-                <button
-                    class="primary-btn full"
-                    onclick="openRegistration()"
-                >
-                    Create Student Profile
-                </button>
-
             `;
 
-
             return;
+
         }
 
 
-        /* =====================================================
-           UPCOMING COMPETITION FOUND
-        ===================================================== */
+        /*
+            WAITING
+        */
 
-        activeLiveCompetition =
-            upcomingCompetition;
+        if (
+            status === "waiting" ||
+            status === "scheduled" ||
+            status === "pending"
+        ) {
 
+            await renderWaitingLiveCompetition();
 
-        /* =====================================================
-           CONVERT TIME TO PAKISTAN TIME
-        ===================================================== */
+            return;
 
-        const startDate =
-            new Date(
-                upcomingCompetition.scheduled_start
-            );
-
-
-        const pakistanTime =
-            startDate.toLocaleString(
-                "en-PK",
-                {
-                    timeZone: "Asia/Karachi",
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true
-                }
-            );
+        }
 
 
-        /* =====================================================
-           SHOW UPCOMING COMPETITION
-        ===================================================== */
+        /*
+            ACTIVE / LIVE / RUNNING
+        */
+
+        if (
+            status === "live" ||
+            status === "active" ||
+            status === "running" ||
+            status === "started"
+        )
+        
+        {
+
+            await prepareLiveCompetition();
+
+            return;
+
+        }
+
+
+        /*
+            UNKNOWN STATUS
+        */
 
         container.innerHTML = `
 
             <div class="eyebrow">
-                🟡 UPCOMING COMPETITION
+                ⚔ LIVE COMPETITION
             </div>
-
 
             <h3>
-                ${escapeLiveText(
-                    upcomingCompetition.title
-                )}
+                Competition unavailable
             </h3>
 
-
             <p>
-                Starts ${pakistanTime} (Pakistan Time)
+                Current competition status:
+                <strong>
+                    ${escapeHTML(
+                        competition.status ||
+                        "unknown"
+                    )}
+                </strong>
             </p>
 
-
-            <div class="competition-placeholder">
-
-                <div class="placeholder-icon">
-                    ⚔
-                </div>
-
-
-                <div>
-
-                    <strong>
-                        Get ready for the challenge
-                    </strong>
-
-
-                    <small>
-                        ${Number(
-                            upcomingCompetition.total_questions || 100
-                        )}
-                        questions will be available
-                        when the competition starts.
-                    </small>
-
-                </div>
-
-            </div>
-
-
             <button
+                type="button"
                 class="primary-btn full"
-                onclick="joinLiveCompetition()"
+                onclick="loadLiveCompetition()"
             >
-                JOIN COMPETITION
+                CHECK AGAIN
             </button>
 
         `;
@@ -3032,22 +2485,35 @@ async function loadLiveCompetition() {
 
         container.innerHTML = `
 
-            <h3>
-                Unable to load competition
-            </h3>
+            <div class="competition-placeholder">
 
+                <div class="placeholder-icon">
+                    ⚠️
+                </div>
 
-            <p>
-                There was a problem checking the competition.
-                Please refresh the page and try again.
-            </p>
+                <div>
 
+                    <strong>
+                        No results
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(
+                            error.message ||
+                            "Unable to load competition."
+                        )}
+                    </small>
+
+                </div>
+
+            </div>
 
             <button
+                type="button"
                 class="primary-btn full"
                 onclick="loadLiveCompetition()"
             >
-                Try Again
+                TRY AGAIN
             </button>
 
         `;
@@ -3058,19 +2524,522 @@ async function loadLiveCompetition() {
 
 
 /* =========================================================
+   RENDER WAITING COMPETITION
+========================================================= */
+
+async function renderWaitingLiveCompetition() {
+
+    const container =
+        document.getElementById(
+            "liveCompetitionContent"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (!currentStudent) {
+
+        container.innerHTML = `
+
+            <div class="eyebrow">
+                ⚔ LIVE COMPETITION
+            </div>
+
+            <h3>
+                ${escapeHTML(
+                    activeLiveCompetition.title ||
+                    "Student Battle KHP"
+                )}
+            </h3>
+
+            <p>
+                The competition is ready.
+                Create your student account to join.
+            </p>
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⏳
+                </div>
+
+                <div>
+
+                    <strong>
+                        Waiting for competition to start
+                    </strong>
+
+                    <small>
+                        Create your student profile first.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="openRegistration()"
+            >
+                JOIN STUDENT BATTLE
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+
+    /*
+        Check whether this student has already joined.
+    */
+
+    const {
+        data: participant,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "live_participants"
+            )
+            .select(
+                "*"
+            )
+            .eq(
+                "competition_id",
+                activeLiveCompetition.id
+            )
+            .eq(
+                "student_id",
+                currentStudent.id
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            "Could not check participant:",
+            error
+        );
+
+    }
+
+
+    if (participant) {
+
+        activeLiveParticipant =
+            participant;
+
+
+        container.innerHTML = `
+
+            <div class="eyebrow">
+                ⚔ LIVE COMPETITION
+            </div>
+
+            <h3>
+                ${escapeHTML(
+                    activeLiveCompetition.title ||
+                    "Student Battle KHP"
+                )}
+            </h3>
+
+            <p>
+                You are registered for this competition.
+            </p>
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⏳
+                </div>
+
+                <div>
+
+                    <strong>
+                        Waiting for the competition to start
+                    </strong>
+
+                    <small>
+                        Your progress is saved in the database.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="loadLiveCompetition()"
+            >
+                CHECK STATUS
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML = `
+
+        <div class="eyebrow">
+            ⚔ LIVE COMPETITION
+        </div>
+
+        <h3>
+            ${escapeHTML(
+                activeLiveCompetition.title ||
+                "Student Battle KHP"
+            )}
+        </h3>
+
+        <p>
+            Get ready! The competition has not started yet.
+        </p>
+
+        <div class="competition-placeholder">
+
+            <div class="placeholder-icon">
+                ⏳
+            </div>
+
+            <div>
+
+                <strong>
+                    Waiting to start
+                </strong>
+
+                <small>
+                    You can join now and wait for the start.
+                </small>
+
+            </div>
+
+        </div>
+
+        <button
+            type="button"
+            class="primary-btn full"
+            onclick="joinLiveCompetition()"
+        >
+            JOIN COMPETITION
+        </button>
+
+    `;
+
+}
+
+
+/* =========================================================
+   PREPARE LIVE COMPETITION
+========================================================= */
+
+async function prepareLiveCompetition() {
+
+    const container =
+        document.getElementById(
+            "liveCompetitionContent"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (!currentStudent) {
+
+        container.innerHTML = `
+
+            <div class="eyebrow">
+                ⚔ LIVE COMPETITION
+            </div>
+
+            <h3>
+                Competition is LIVE
+            </h3>
+
+            <p>
+                Create a student account to participate.
+            </p>
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    🔐
+                </div>
+
+                <div>
+
+                    <strong>
+                        Login required
+                    </strong>
+
+                    <small>
+                        Every participant needs a student account.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="openRegistration()"
+            >
+                CREATE STUDENT PROFILE
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+
+    /*
+        Find THIS student's participant record.
+    */
+
+    const {
+        data: participant,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "live_participants"
+            )
+            .select(
+                "*"
+            )
+            .eq(
+                "competition_id",
+                activeLiveCompetition.id
+            )
+            .eq(
+                "student_id",
+                currentStudent.id
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            "Could not load live participant:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <strong>
+                        No results
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(
+                            error.message
+                        )}
+                    </small>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    if (!participant) {
+
+        container.innerHTML = `
+
+            <div class="eyebrow">
+                ⚔ LIVE COMPETITION
+            </div>
+
+            <h3>
+                ${escapeHTML(
+                    activeLiveCompetition.title ||
+                    "Student Battle KHP"
+                )}
+            </h3>
+
+            <p>
+                The competition is live now.
+            </p>
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚔
+                </div>
+
+                <div>
+
+                    <strong>
+                        You can join now
+                    </strong>
+
+                    <small>
+                        Your questions will progress independently.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="joinLiveCompetition()"
+            >
+                JOIN LIVE COMPETITION
+            </button>
+
+        `;
+
+        return;
+
+    }
+
+
+    activeLiveParticipant =
+        participant;
+
+
+    /*
+        If this student already completed the competition.
+    */
+
+    if (
+        participant.completed === true
+    ) {
+
+        await showLiveCompletedScreen();
+
+        return;
+
+    }
+
+
+    /*
+        VERY IMPORTANT:
+
+        We use THIS PARTICIPANT'S current_question.
+
+        We do NOT use:
+
+        activeLiveCompetition.current_question
+    */
+
+    liveQuestionNumber =
+        Number(
+            participant.current_question || 1
+        );
+
+
+    /*
+        If question_started_at is missing,
+        create it now.
+
+        This makes the timer persistent
+        for this student's current question.
+    */
+
+    if (
+        !participant.question_started_at
+    ) {
+
+        const questionStartedAt =
+            new Date().toISOString();
+
+
+        const {
+            data: updatedParticipant,
+            error: timestampError
+        } =
+            await supabaseClient
+                .from(
+                    "live_participants"
+                )
+                .update({
+
+                    question_started_at:
+                        questionStartedAt
+
+                })
+                .eq(
+                    "id",
+                    participant.id
+                )
+                .select(
+                    "*"
+                )
+                .single();
+
+
+        if (timestampError) {
+
+            console.error(
+                "Could not initialize question timer:",
+                timestampError
+            );
+
+            return;
+
+        }
+
+
+        activeLiveParticipant =
+            updatedParticipant;
+
+    }
+
+
+    await showLiveQuestion();
+
+}
+
+
+/* =========================================================
    JOIN LIVE COMPETITION
 ========================================================= */
 
 async function joinLiveCompetition() {
 
-    if (!requireSupabase()) {
+    if (
+        !requireSupabase(
+            "Live competition is unavailable because the database connection is not ready."
+        )
+    ) {
+
         return;
+
     }
 
-
-    /* ============================================
-       CHECK LOGIN
-    ============================================ */
 
     if (!currentStudent) {
 
@@ -3081,77 +3050,24 @@ async function joinLiveCompetition() {
         openLogin();
 
         return;
+
     }
 
 
     if (!activeLiveCompetition) {
 
-        alert(
-            "There is no active competition right now."
-        );
-
         await loadLiveCompetition();
 
         return;
+
     }
 
 
     try {
 
-        /* ============================================
-           GET CURRENT PROFILE
-        ============================================ */
-
-        const {
-            data: profile,
-            error: profileError
-        } =
-            await supabaseClient
-                .from("profiles")
-                .select(
-                    "id, name, email, institute_id"
-                )
-                .eq(
-                    "id",
-                    currentStudent.id
-                )
-                .single();
-
-
-        if (profileError) {
-
-            console.error(
-                "Profile error:",
-                profileError
-            );
-
-            alert(
-                "Unable to load your student profile."
-            );
-
-            return;
-        }
-
-
-        /* ============================================
-           MAKE SURE UNIVERSITY IS SELECTED
-        ============================================ */
-
-        if (!profile.institute_id) {
-
-            alert(
-                "Please select your university/institute before joining the competition."
-            );
-
-            openProfile();
-
-            return;
-        }
-
-
-        /* ============================================
-           CHECK WHETHER ALREADY JOINED
-        ============================================ */
+        /*
+            Check if student already joined.
+        */
 
         const {
             data: existingParticipant,
@@ -3161,14 +3077,16 @@ async function joinLiveCompetition() {
                 .from(
                     "live_participants"
                 )
-                .select("*")
+                .select(
+                    "*"
+                )
                 .eq(
                     "competition_id",
                     activeLiveCompetition.id
                 )
                 .eq(
                     "student_id",
-                    profile.id
+                    currentStudent.id
                 )
                 .maybeSingle();
 
@@ -3176,39 +3094,72 @@ async function joinLiveCompetition() {
         if (existingError) {
 
             console.error(
-                "Participant check error:",
+                "Participant lookup error:",
                 existingError
             );
 
             alert(
-                "Unable to check your competition registration."
+                existingError.message
             );
 
             return;
+
         }
 
-
-        /* ============================================
-           ALREADY JOINED
-        ============================================ */
 
         if (existingParticipant) {
 
             activeLiveParticipant =
                 existingParticipant;
 
+            liveQuestionNumber =
+                Number(
+                    existingParticipant.current_question ||
+                    1
+                );
 
-            showLiveCompetitionWaitingRoom(
-                existingParticipant
-            );
+
+            if (
+                existingParticipant.completed
+            ) {
+
+                await showLiveCompletedScreen();
+
+                return;
+
+            }
+
+
+            /*
+                If the participant already exists,
+                DO NOT reset question_started_at.
+
+                This is important because the student
+                may already have used part of their
+                60 seconds.
+            */
+
+            await showLiveQuestion();
 
             return;
+
         }
 
 
-        /* ============================================
-           JOIN COMPETITION
-        ============================================ */
+        /*
+            Join with Question 1.
+
+            question_started_at is saved immediately.
+
+            This student's timer starts now.
+
+            Other students have their own
+            question_started_at values.
+        */
+
+        const questionStartedAt =
+            new Date().toISOString();
+
 
         const {
             data: participant,
@@ -3224,34 +3175,56 @@ async function joinLiveCompetition() {
                         activeLiveCompetition.id,
 
                     student_id:
-                        profile.id,
+                        currentStudent.id,
+
+                    /*
+                        Your database column is BIGINT.
+
+                        currentStudent.institute_id
+                        must therefore contain the
+                        institute table BIGINT id.
+                    */
 
                     institute_id:
-                        profile.institute_id,
+                        currentStudent.institute_id ||
+                        null,
 
-                    current_question: 1,
+                    current_question:
+                        1,
 
-                    score: 0,
+                    score:
+                        0,
 
-                    completed: false
+                    completed:
+                        false,
+
+                    joined_at:
+                        new Date().toISOString(),
+
+                    question_started_at:
+                        questionStartedAt
 
                 })
-                .select()
+                .select(
+                    "*"
+                )
                 .single();
 
 
         if (joinError) {
 
             console.error(
-                "Join competition error:",
+                "Could not join live competition:",
                 joinError
             );
 
+
             alert(
-                "Unable to join the competition right now. Please try again."
+                joinError.message
             );
 
             return;
+
         }
 
 
@@ -3259,29 +3232,23 @@ async function joinLiveCompetition() {
             participant;
 
 
-        console.log(
-            "Successfully joined live competition:",
-            participant
-        );
+        liveQuestionNumber =
+            1;
 
 
-        /* ============================================
-           SUCCESS
-        ============================================ */
-
-        showLiveCompetitionWaitingRoom(
-            participant
-        );
+        await showLiveQuestion();
 
     } catch (error) {
 
         console.error(
-            "Unexpected join competition error:",
+            "Join live competition error:",
             error
         );
 
+
         alert(
-            "Something went wrong while joining the competition."
+            error.message ||
+            "Unable to join the competition."
         );
 
     }
@@ -3290,12 +3257,10 @@ async function joinLiveCompetition() {
 
 
 /* =========================================================
-   LIVE COMPETITION WAITING ROOM
+   SHOW LIVE QUESTION
 ========================================================= */
 
-function showLiveCompetitionWaitingRoom(
-    participant
-) {
+async function showLiveQuestion() {
 
     const container =
         document.getElementById(
@@ -3308,59 +3273,517 @@ function showLiveCompetitionWaitingRoom(
     }
 
 
+    if (!activeLiveCompetition) {
+
+        return;
+
+    }
+
+
+    if (!activeLiveParticipant) {
+
+        return;
+
+    }
+
+
+    /*
+        If participant completed.
+    */
+
+    if (
+        activeLiveParticipant.completed
+    ) {
+
+        await showLiveCompletedScreen();
+
+        return;
+
+    }
+
+
+    /*
+        Get THIS student's current question.
+    */
+
+    liveQuestionNumber =
+        Number(
+            activeLiveParticipant.current_question ||
+            1
+        );
+
+
+    /*
+        Get the question belonging to this question number.
+    */
+
+    const {
+        data: question,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "live_competition_questions"
+            )
+            .select(
+                "id, competition_id, question_number, subject, question, option_a, option_b, option_c, option_d, correct_answer"
+            )
+            .eq(
+                "competition_id",
+                activeLiveCompetition.id
+            )
+            .eq(
+                "question_number",
+                liveQuestionNumber
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            "Could not load live question:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <strong>
+                        No results
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(
+                            error.message
+                        )}
+                    </small>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    if (!question) {
+
+        console.error(
+            "No live question found:",
+            liveQuestionNumber
+        );
+
+
+        container.innerHTML = `
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <strong>
+                        Question unavailable
+                    </strong>
+
+                    <small>
+                        Question ${liveQuestionNumber}
+                        could not be found.
+                    </small>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    liveCurrentQuestion =
+        question;
+
+
+    liveAnswerLocked =
+        false;
+
+
+    /*
+        Determine total questions.
+    */
+
+    const totalQuestions =
+        Number(
+            activeLiveCompetition.total_questions ||
+            100
+        );
+
+
+    /*
+        =====================================================
+        IMPORTANT TIMER CALCULATION
+        =====================================================
+
+        We DO NOT simply start at 60.
+
+        Instead:
+
+        question_started_at
+            =
+        the exact time THIS student started
+        THIS question.
+
+        Therefore if the student refreshes
+        after 20 seconds:
+
+            60 - 20 = 40 seconds
+
+        remain.
+
+        This makes the timer independent
+        and persistent.
+    */
+
+    let remainingSeconds =
+        60;
+
+
+    if (
+        activeLiveParticipant.question_started_at
+    ) {
+
+        const startedAt =
+            new Date(
+                activeLiveParticipant.question_started_at
+            );
+
+
+        const elapsedMilliseconds =
+            Date.now() -
+            startedAt.getTime();
+
+
+        const elapsedSeconds =
+            Math.floor(
+                elapsedMilliseconds /
+                1000
+            );
+
+
+        remainingSeconds =
+            Math.max(
+                0,
+                60 -
+                elapsedSeconds
+            );
+
+    } else {
+
+        /*
+            Safety fallback.
+
+            Normally this is already created
+            during join or prepare.
+        */
+
+        const questionStartedAt =
+            new Date().toISOString();
+
+
+        const {
+            data: updatedParticipant,
+            error: timestampError
+        } =
+            await supabaseClient
+                .from(
+                    "live_participants"
+                )
+                .update({
+
+                    question_started_at:
+                        questionStartedAt
+
+                })
+                .eq(
+                    "id",
+                    activeLiveParticipant.id
+                )
+                .select(
+                    "*"
+                )
+                .single();
+
+
+        if (timestampError) {
+
+            console.error(
+                "Could not save question start time:",
+                timestampError
+            );
+
+            return;
+
+        }
+
+
+        activeLiveParticipant =
+            updatedParticipant;
+
+
+        remainingSeconds =
+            60;
+
+    }
+
+
+    /*
+        If this question has already expired
+        while the student was away from the page,
+        automatically submit timeout.
+    */
+
+    if (
+        remainingSeconds <= 0
+    ) {
+
+        liveSecondsRemaining =
+            0;
+
+        liveAnswerLocked =
+            true;
+
+        await submitLiveAnswer(
+            -1,
+            true
+        );
+
+        return;
+
+    }
+
+
+    /*
+        Render the question.
+
+        Only ONE question is shown.
+        No question palette.
+    */
+
     container.innerHTML = `
 
         <div class="eyebrow">
-            ✅ REGISTERED
+            ⚔ LIVE COMPETITION
         </div>
 
 
-        <h3>
-            You're in!
-        </h3>
-
-
-        <p>
-            You have successfully joined:
-        </p>
-
-
-        <div class="competition-placeholder">
-
-            <div class="placeholder-icon">
-                🎓
-            </div>
-
+        <div
+            style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:12px;
+                margin-bottom:15px;
+            "
+        >
 
             <div>
 
-                <strong>
-                    ${escapeLiveText(
-                        activeLiveCompetition.title
+                <h3 style="margin:0;">
+                    ${escapeHTML(
+                        activeLiveCompetition.title ||
+                        "Student Battle KHP"
                     )}
-                </strong>
-
+                </h3>
 
                 <small>
-                    Waiting for the competition to start.
+                    ${escapeHTML(
+                        question.subject ||
+                        "Mixed Subject"
+                    )}
                 </small>
 
             </div>
 
+
+            <div
+                style="
+                    text-align:right;
+                    min-width:80px;
+                "
+            >
+
+                <strong
+                    id="liveQuestionNumber"
+                >
+                    ${liveQuestionNumber}
+                    /
+                    ${totalQuestions}
+                </strong>
+
+                <br>
+
+                <span
+                    id="liveTimer"
+                >
+                    ${remainingSeconds}s
+                </span>
+
+            </div>
+
         </div>
 
 
-        <p>
-            When the competition starts,
-            your CBT test will appear here automatically.
-        </p>
+        <div
+            class="progress-track"
+            style="margin-bottom:20px;"
+        >
 
+            <div
+                class="progress-bar"
+                id="liveProgressBar"
+                style="
+                    width:${Math.min(
+                        100,
+                        (
+                            (
+                                liveQuestionNumber -
+                                1
+                            ) /
+                            totalQuestions
+                        ) *
+                        100
+                    )}%;
+                "
+            ></div>
+
+        </div>
+
+
+        <h3
+            class="question-text"
+            id="liveQuestionText"
+        >
+            ${escapeHTML(
+                question.question ||
+                ""
+            )}
+        </h3>
+
+
+        <div
+            id="liveAnswerOptions"
+            class="answers"
+        >
+
+            ${createLiveAnswerButton(
+                0,
+                question.option_a
+            )}
+
+            ${createLiveAnswerButton(
+                1,
+                question.option_b
+            )}
+
+            ${createLiveAnswerButton(
+                2,
+                question.option_c
+            )}
+
+            ${createLiveAnswerButton(
+                3,
+                question.option_d
+            )}
+
+        </div>
+
+
+        <div
+            id="liveScore"
+            style="
+                margin-top:18px;
+                font-weight:700;
+                text-align:center;
+            "
+        >
+            Score:
+            ${Number(
+                activeLiveParticipant.score ||
+                0
+            )}
+
+        </div>
+
+    `;
+
+
+    /*
+        Start THIS student's timer
+        with the remaining time calculated
+        from question_started_at.
+    */
+
+    startLiveQuestionTimer(
+        remainingSeconds
+    );
+
+}
+
+
+/* =========================================================
+   CREATE LIVE ANSWER BUTTON
+========================================================= */
+
+function createLiveAnswerButton(
+    index,
+    option
+) {
+
+    if (
+        option === null ||
+        option === undefined ||
+        String(option).trim() === ""
+    ) {
+
+        return "";
+
+    }
+
+
+    return `
 
         <button
-            class="primary-btn full"
-            onclick="loadLiveCompetition()"
+            type="button"
+            class="answer-option"
+            onclick="selectLiveAnswer(${index})"
         >
-            CHECK COMPETITION STATUS
+
+            <span>
+                ${String.fromCharCode(
+                    65 + index
+                )}.
+            </span>
+
+            ${escapeHTML(
+                String(option)
+            )}
+
         </button>
 
     `;
@@ -3369,111 +3792,1496 @@ function showLiveCompetitionWaitingRoom(
 
 
 /* =========================================================
-   ESCAPE LIVE COMPETITION TEXT
+   START LIVE QUESTION TIMER
 ========================================================= */
 
-function escapeLiveText(value) {
+function startLiveQuestionTimer(
+    startingSeconds = 60
+) {
+
+    clearLiveQuestionTimer();
+
+
+    liveSecondsRemaining =
+        Math.max(
+            0,
+            Number(
+                startingSeconds
+            )
+        );
+
+
+    updateLiveTimerDisplay();
+
+
+    /*
+        If there is no time remaining,
+        immediately submit timeout.
+    */
 
     if (
-        value === null ||
-        value === undefined
+        liveSecondsRemaining <= 0
     ) {
 
-        return "";
+        if (
+            !liveAnswerLocked
+        ) {
+
+            liveAnswerLocked =
+                true;
+
+            submitLiveAnswer(
+                -1,
+                true
+            );
+
+        }
+
+        return;
 
     }
 
 
-    return String(value)
+    liveTimer =
+        setInterval(
+            async function () {
 
-        .replace(
-            /&/g,
-            "&amp;"
-        )
+                liveSecondsRemaining -=
+                    1;
 
-        .replace(
-            /</g,
-            "&lt;"
-        )
 
-        .replace(
-            />/g,
-            "&gt;"
-        )
+                updateLiveTimerDisplay();
 
-        .replace(
-            /"/g,
-            "&quot;"
-        )
 
-        .replace(
-            /'/g,
-            "&#039;"
+                if (
+                    liveSecondsRemaining <=
+                    0
+                ) {
+
+                    clearLiveQuestionTimer();
+
+
+                    /*
+                        Time expired.
+
+                        We automatically submit
+                        no answer and move THIS
+                        participant to the next question.
+                    */
+
+                    if (
+                        !liveAnswerLocked
+                    ) {
+
+                        liveAnswerLocked =
+                            true;
+
+                        await submitLiveAnswer(
+                            -1,
+                            true
+                        );
+
+                    }
+
+                }
+
+            },
+            1000
         );
 
 }
 
 
 /* =========================================================
-   LOAD LIVE COMPETITION AFTER PAGE LOAD
+   UPDATE LIVE TIMER
 ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
+function updateLiveTimerDisplay() {
+
+    const timer =
+        document.getElementById(
+            "liveTimer"
+        );
+
+
+    if (!timer) {
+        return;
+    }
+
+
+    timer.textContent =
+        `${liveSecondsRemaining}s`;
+
+}
+
+
+/* =========================================================
+   CLEAR LIVE TIMER
+========================================================= */
+
+function clearLiveQuestionTimer() {
+
+    if (
+        liveTimer
+    ) {
+
+        clearInterval(
+            liveTimer
+        );
+
+        liveTimer =
+            null;
+
+    }
+
+}
+
+
+/* =========================================================
+   SELECT LIVE ANSWER
+========================================================= */
+
+async function selectLiveAnswer(
+    selectedIndex
+) {
+
+    if (
+        liveAnswerLocked
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !liveCurrentQuestion
+    ) {
+
+        return;
+
+    }
+
+
+    liveAnswerLocked =
+        true;
+
+
+    clearLiveQuestionTimer();
+
+
+    await submitLiveAnswer(
+        selectedIndex,
+        false
+    );
+
+}
+
+
+/* =========================================================
+   SUBMIT LIVE ANSWER
+========================================================= */
+
+async function submitLiveAnswer(
+    selectedIndex,
+    timedOut = false
+) {
+
+    if (
+        !activeLiveCompetition ||
+        !activeLiveParticipant ||
+        !liveCurrentQuestion
+    ) {
+
+        return;
+
+    }
+
+
+    const buttons =
+        document.querySelectorAll(
+            "#liveAnswerOptions .answer-option"
+        );
+
+
+    buttons.forEach(
+        function (
+            button
+        ) {
+
+            button.disabled =
+                true;
+
+        }
+    );
+
+
+    /*
+        Convert database correct_answer
+        into an option index.
+
+        Supports:
+
+        A
+        B
+        C
+        D
+
+        0
+        1
+        2
+        3
+
+        1
+        2
+        3
+        4
+    */
+
+    const correctIndex =
+        getLiveCorrectAnswerIndex(
+            liveCurrentQuestion.correct_answer
+        );
+
+
+    const isCorrect =
+        !timedOut &&
+        Number(
+            selectedIndex
+        ) ===
+        Number(
+            correctIndex
+        );
+
+
+    /*
+        Highlight answer.
+
+        If timed out, show the correct answer
+        but there is no selected answer.
+    */
+
+    buttons.forEach(
+        function (
+            button,
+            index
+        ) {
+
+            if (
+                index ===
+                correctIndex
+            ) {
+
+                button.classList.add(
+                    "correct"
+                );
+
+            }
+
+
+            if (
+                !timedOut &&
+                index ===
+                selectedIndex &&
+                selectedIndex !==
+                    correctIndex
+            ) {
+
+                button.classList.add(
+                    "incorrect"
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+        Save answer to live_answers.
+
+        Notice:
+
+        student_id =
+        THIS student.
+
+        question_number =
+        THIS student's current question.
+
+        Therefore students do not affect
+        one another's position.
+
+        timed out answer is stored as -1.
+    */
+
+    const {
+        error: answerError
+    } =
+        await supabaseClient
+            .from(
+                "live_answers"
+            )
+            .insert({
+
+                competition_id:
+                    activeLiveCompetition.id,
+
+                student_id:
+                    activeLiveParticipant.student_id,
+
+                question_number:
+                    liveQuestionNumber,
+
+                selected_answer:
+                    timedOut
+                        ? -1
+                        : selectedIndex,
+
+                is_correct:
+                    isCorrect,
+
+                answered_at:
+                    new Date().toISOString()
+
+            });
+
+
+    if (answerError) {
+
+        console.error(
+            "Could not save live answer:",
+            answerError
+        );
+
+
+        alert(
+            "Your answer could not be saved. Please try again."
+        );
+
+
+        liveAnswerLocked =
+            false;
+
+
+        /*
+            Restart the timer with the remaining
+            time calculated from the database.
+        */
+
+        if (
+            activeLiveParticipant.question_started_at
+        ) {
+
+            const startedAt =
+                new Date(
+                    activeLiveParticipant.question_started_at
+                );
+
+
+            const elapsedSeconds =
+                Math.floor(
+                    (
+                        Date.now() -
+                        startedAt.getTime()
+                    ) /
+                    1000
+                );
+
+
+            const remaining =
+                Math.max(
+                    0,
+                    60 -
+                    elapsedSeconds
+                );
+
+
+            if (
+                remaining > 0
+            ) {
+
+                startLiveQuestionTimer(
+                    remaining
+                );
+
+            }
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+        Update THIS student's score.
+    */
+
+    const newScore =
+        Number(
+            activeLiveParticipant.score ||
+            0
+        ) +
+        (
+            isCorrect
+                ? 1
+                : 0
+        );
+
+
+    /*
+        Determine next question.
+    */
+
+    const totalQuestions =
+        Number(
+            activeLiveCompetition.total_questions ||
+            100
+        );
+
+
+    const nextQuestion =
+        liveQuestionNumber +
+        1;
+
+
+    /*
+        FINAL QUESTION
+    */
+
+    if (
+        nextQuestion >
+        totalQuestions
+    ) {
+
+        const {
+            data: updatedParticipant,
+            error: finishError
+        } =
+            await supabaseClient
+                .from(
+                    "live_participants"
+                )
+                .update({
+
+                    score:
+                        newScore,
+
+                    current_question:
+                        totalQuestions,
+
+                    completed:
+                        true,
+
+                    finished_at:
+                        new Date().toISOString()
+
+                })
+                .eq(
+                    "id",
+                    activeLiveParticipant.id
+                )
+                .select(
+                    "*"
+                )
+                .single();
+
+
+        if (finishError) {
+
+            console.error(
+                "Could not finish participant:",
+                finishError
+            );
+
+            return;
+
+        }
+
+
+        activeLiveParticipant =
+            updatedParticipant;
+
+
+        liveCompetitionFinished =
+            true;
+
+
+        await showLiveCompletedScreen();
+
+        return;
+
+    }
+
+
+    /*
+        MOVE ONLY THIS PARTICIPANT.
+
+        We update:
+
+        live_participants.current_question
+
+        AND:
+
+        live_participants.question_started_at
+
+        for THIS participant's row only.
+
+        The new question gets a fresh
+        60-second timer.
+
+        Other students remain exactly
+        where they currently are.
+    */
+
+    const nextQuestionStartedAt =
+        new Date().toISOString();
+
+
+    const {
+        data: updatedParticipant,
+        error: updateError
+    } =
+        await supabaseClient
+            .from(
+                "live_participants"
+            )
+            .update({
+
+                current_question:
+                    nextQuestion,
+
+                score:
+                    newScore,
+
+                question_started_at:
+                    nextQuestionStartedAt
+
+            })
+            .eq(
+                "id",
+                activeLiveParticipant.id
+            )
+            .select(
+                "*"
+            )
+            .single();
+
+
+    if (updateError) {
+
+        console.error(
+            "Could not update participant progress:",
+            updateError
+        );
+
+
+        alert(
+            "Your progress could not be saved. Please try again."
+        );
+
+        return;
+
+    }
+
+
+    activeLiveParticipant =
+        updatedParticipant;
+
+
+    liveQuestionNumber =
+        nextQuestion;
+
+
+    liveCurrentQuestion =
+        null;
+
+
+    /*
+        Small delay so the user can see
+        the correct/incorrect result.
+    */
+
+    setTimeout(
+        async function () {
+
+            await showLiveQuestion();
+
+        },
+        400
+    );
+
+}
+
+
+/* =========================================================
+   LIVE CORRECT ANSWER INDEX
+========================================================= */
+
+function getLiveCorrectAnswerIndex(
+    answer
+) {
+
+    if (
+        answer === null ||
+        answer === undefined
+    ) {
+
+        return -1;
+
+    }
+
+
+    const normalized =
+        String(
+            answer
+        )
+            .trim()
+            .toUpperCase();
+
+
+    /*
+        A / B / C / D
+    */
+
+    if (
+        [
+            "A",
+            "B",
+            "C",
+            "D"
+        ].includes(
+            normalized
+        )
+    ) {
+
+        return "ABCD".indexOf(
+            normalized
+        );
+
+    }
+
+
+    /*
+        Numeric answer.
+
+        IMPORTANT:
+
+        This assumes numeric answers
+        0-3 are indexes and 1-4 are
+        answer numbers.
+
+        If your database uses ONLY 1-4,
+        we should standardize that column
+        to avoid ambiguity with the value 1,
+        2, or 3.
+    */
+
+    const numeric =
+        Number(
+            normalized
+        );
+
+
+    if (
+        Number.isFinite(
+            numeric
+        )
+    ) {
+
+        /*
+            0 - 3
+        */
+
+        if (
+            numeric >= 0 &&
+            numeric <= 3
+        ) {
+
+            return numeric;
+
+        }
+
+
+        /*
+            1 - 4
+        */
+
+        if (
+            numeric >= 1 &&
+            numeric <= 4
+        ) {
+
+            return numeric - 1;
+
+        }
+
+    }
+
+
+    /*
+        Sometimes correct_answer may contain
+        the actual option text.
+
+        Compare it against the four options.
+    */
+
+    if (
+        liveCurrentQuestion
+    ) {
+
+        const options = [
+
+            liveCurrentQuestion.option_a,
+
+            liveCurrentQuestion.option_b,
+
+            liveCurrentQuestion.option_c,
+
+            liveCurrentQuestion.option_d
+
+        ];
+
+
+        for (
+            let i = 0;
+            i < options.length;
+            i++
+        ) {
+
+            if (
+                String(
+                    options[i] ||
+                    ""
+                )
+                    .trim()
+                    .toUpperCase() ===
+                normalized
+            ) {
+
+                return i;
+
+            }
+
+        }
+
+    }
+
+
+    return -1;
+
+}
+
+
+/* =========================================================
+   SHOW LIVE COMPLETED SCREEN
+========================================================= */
+
+async function showLiveCompletedScreen() {
+
+    clearLiveQuestionTimer();
+
+
+    const container =
+        document.getElementById(
+            "liveCompetitionContent"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const score =
+        Number(
+            activeLiveParticipant?.score ||
+            0
+        );
+
+
+    const totalQuestions =
+        Number(
+            activeLiveCompetition?.total_questions ||
+            100
+        );
+
+
+    container.innerHTML = `
+
+        <div class="eyebrow">
+            🏆 COMPETITION COMPLETE
+        </div>
+
+
+        <h3>
+            Well done!
+        </h3>
+
+
+        <p>
+            You have completed the live competition.
+        </p>
+
+
+        <div class="competition-placeholder">
+
+            <div class="placeholder-icon">
+                🏆
+            </div>
+
+            <div>
+
+                <strong>
+                    Your Score
+                </strong>
+
+                <small>
+                    ${score}
+                    /
+                    ${totalQuestions}
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <div
+            style="
+                text-align:center;
+                margin-top:18px;
+                font-size:18px;
+                font-weight:700;
+            "
+        >
+            Score:
+            ${score}/${totalQuestions}
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   LIVE COMPETITION CLEANUP
+========================================================= */
+
+function closeLiveCompetition() {
+
+    clearLiveQuestionTimer();
+
+
+    activeLiveCompetition =
+        null;
+
+    activeLiveParticipant =
+        null;
+
+    liveCurrentQuestion =
+        null;
+
+    liveQuestionNumber =
+        1;
+
+    liveSecondsRemaining =
+        60;
+
+    liveAnswerLocked =
+        false;
+
+    liveCompetitionFinished =
+        false;
+
+}
+
+
+/* =========================================================
+   LOAD LIVE COMPETITION AFTER LOGIN
+========================================================= */
+
+async function refreshLiveCompetitionAfterLogin() {
+
+    if (
+        !supabaseReady ||
+        !supabaseClient
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await loadLiveCompetition();
+
+    } catch (error) {
+
+        console.error(
+            "Could not refresh live competition:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LIVE COMPETITION PAGE CLEANUP
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
     function () {
 
-        /*
-            Load immediately when the page opens.
-        */
-
-        loadLiveCompetition();
-
-
-        /*
-            Check every 10 seconds so the website
-            automatically changes from UPCOMING
-            to LIVE when Supabase changes the
-            competition status.
-        */
-
-        setInterval(
-            function () {
-
-                loadLiveCompetition();
-
-            },
-            10000
-        );
+        clearLiveQuestionTimer();
 
     }
 );
 
 
 /* =========================================================
-   LEADERBOARD
+   MAKE SURE EACH CATEGORY HAS 50 QUESTIONS
+========================================================= */
+
+if (
+    typeof questionBank !== "undefined" &&
+    questionBank &&
+    typeof getNormalQuestionOptions === "function" &&
+    typeof getNormalCorrectAnswer === "function"
+) {
+
+    Object.keys(
+        questionBank
+    ).forEach(
+        category => {
+
+            let questions =
+                questionBank[category];
+
+
+            /*
+                Some question banks may store
+                questions inside .questions
+            */
+
+            if (
+                questions &&
+                !Array.isArray(questions) &&
+                Array.isArray(
+                    questions.questions
+                )
+            ) {
+
+                questionBank[category] =
+                    questions.questions;
+
+                questions =
+                    questionBank[category];
+
+            }
+
+
+            if (
+                Array.isArray(questions) &&
+                questions.length > 0
+            ) {
+
+                let index = 0;
+
+                while (
+                    questions.length < 50
+                ) {
+
+                    const original =
+                        questions[
+                            index %
+                            questions.length
+                        ];
+
+
+                    questions.push({
+
+                        q:
+                            original.q ||
+                            original.question ||
+                            original.question_text ||
+                            "",
+
+                        options:
+                            Array.isArray(
+                                original.options
+                            )
+                                ? [
+                                    ...original.options
+                                ]
+                                : getNormalQuestionOptions(
+                                    original
+                                ),
+
+                        answer:
+                            getNormalCorrectAnswer(
+                                original
+                            )
+
+                    });
+
+
+                    index++;
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+/* =========================================================
+   AUTH / PAGE INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+        setupRegistration();
+
+        setupLogin();
+
+        updateUserArea();
+
+
+        if (!supabaseReady) {
+
+            console.warn(
+                "Student Battle is running in offline UI mode because Supabase could not be initialized."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const {
+                data: {
+                    session
+                }
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                session?.user
+            ) {
+
+                await loadCurrentStudent(
+                    session.user
+                );
+
+            }
+
+
+            updateUserArea();
+
+            await loadLeaderboard();
+
+
+        } catch (error) {
+
+            console.error(
+                "Supabase startup error:",
+                error
+            );
+
+            updateUserArea();
+
+        }
+
+    }
+);
+/* =========================================================
+   LOAD LEADERBOARD
+   SHOW ONLY THE LATEST COMPLETED LIVE COMPETITION
 ========================================================= */
 
 async function loadLeaderboard() {
 
-    const section =
-        document.getElementById("leaderboardSection");
+    if (
+        !supabaseReady ||
+        !supabaseClient
+    ) {
 
-    const container =
-        document.getElementById("leaderboard");
-
-
-    if (!section || !container) {
         return;
+
     }
 
 
-    if (!supabaseReady || !supabaseClient) {
+    const leaderboardSection =
+        document.getElementById(
+            "leaderboardSection"
+        );
 
-        section.hidden = true;
 
-        container.innerHTML = "";
+    const leaderboard =
+        document.getElementById(
+            "leaderboard"
+        );
+
+
+    if (
+        !leaderboardSection ||
+        !leaderboard
+    ) {
 
         return;
+
+    }
+
+
+    try {
+
+        /* =====================================================
+           FIND LATEST FINISHED LIVE COMPETITION
+        ===================================================== */
+
+        const {
+            data: latestCompetition,
+            error: competitionError
+        } =
+            await supabaseClient
+                .from("live_competitions")
+                .select(
+                    "id, title, status, total_questions, finished_at, created_at"
+                )
+                .eq(
+                    "status",
+                    "finished"
+                )
+                .order(
+                    "finished_at",
+                    {
+                        ascending: false
+                    }
+                )
+                .limit(
+                    1
+                )
+                .maybeSingle();
+
+
+        if (competitionError) {
+
+            console.error(
+                "Could not find latest finished competition:",
+                competitionError
+            );
+
+            return;
+
+        }
+
+
+        /* =====================================================
+           NO FINISHED COMPETITION
+        ===================================================== */
+
+        if (
+            !latestCompetition
+        ) {
+
+            leaderboardSection.hidden =
+                true;
+
+            leaderboard.innerHTML =
+                "";
+
+            return;
+
+        }
+
+
+        console.log(
+            "Latest finished competition:",
+            latestCompetition
+        );
+
+
+        /* =====================================================
+           LOAD COMPLETED PARTICIPANTS
+           ONLY FROM THIS COMPETITION
+        ===================================================== */
+
+        const {
+            data: participants,
+            error: participantError
+        } =
+            await supabaseClient
+                .from("live_participants")
+                .select(
+                    "id, student_id, institute_id, score, completed, finished_at"
+                )
+                .eq(
+                    "competition_id",
+                    latestCompetition.id
+                )
+                .eq(
+                    "completed",
+                    true
+                )
+                .order(
+                    "score",
+                    {
+                        ascending: false
+                    }
+                )
+                .order(
+                    "finished_at",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (participantError) {
+
+            console.error(
+                "Could not load live competition results:",
+                participantError
+            );
+
+            return;
+
+        }
+
+
+        /* =====================================================
+           NO COMPLETED RESULTS
+        ===================================================== */
+
+        if (
+            !participants ||
+            !participants.length
+        ) {
+
+            leaderboardSection.hidden =
+                true;
+
+            leaderboard.innerHTML =
+                "";
+
+            return;
+
+        }
+
+
+        /* =====================================================
+           SHOW LEADERBOARD
+        ===================================================== */
+
+        leaderboardSection.hidden =
+            false;
+
+
+        /* =====================================================
+           UPDATE DESCRIPTION
+        ===================================================== */
+
+        const description =
+            leaderboardSection.querySelector(
+                ".section-heading p"
+            );
+
+
+        if (
+            description
+        ) {
+
+            description.textContent =
+                latestCompetition.title;
+
+        }
+
+
+        /* =====================================================
+           CREATE LEADERBOARD
+        ===================================================== */
+
+        leaderboard.innerHTML =
+            participants
+                .map(
+                    function (
+                        participant,
+                        index
+                    ) {
+
+                        return `
+
+                            <div class="leaderboard-item">
+
+                                <div class="leaderboard-rank">
+
+                                    ${index + 1}
+
+                                </div>
+
+
+                                <div class="leaderboard-player">
+
+                                    <strong>
+
+                                        Student
+
+                                    </strong>
+
+
+                                    <small>
+
+                                        Live Competition
+
+                                    </small>
+
+                                </div>
+
+
+                                <div class="leaderboard-score">
+
+                                    <strong>
+
+                                        ${Number(
+                                            participant.score || 0
+                                        )}/${Number(
+                                            latestCompetition.total_questions || 0
+                                        )}
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+                )
+                .join("");
+
+
+        console.log(
+            "Leaderboard successfully loaded for:",
+            latestCompetition.title
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Leaderboard loading failed:",
+            error
+        );
+
+    }
+
+}
+
+/* =========================================================
+   SAFE HTML ESCAPE HELPER
+========================================================= */
+
+/*
+    IMPORTANT:
+
+    Some parts of the website use escapeHTML().
+
+    If another part of script.js already defines it,
+    we DO NOT create another copy.
+
+    If it does not exist, this creates it safely.
+*/
+
+if (
+    typeof window.escapeHTML !==
+    "function"
+) {
+
+    window.escapeHTML =
+        function (
+            value
+        ) {
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+
+                return "";
+
+            }
+
+
+            return String(
+                value
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        };
+
+}
+
+
+/* =========================================================
+   RESTORE CURRENT STUDENT
+========================================================= */
+
+/*
+    IMPORTANT:
+
+    Supabase can remember that the user is logged in
+    even when the JavaScript variable currentStudent
+    has not been restored yet.
+
+    This function checks the current Supabase session
+    and loads the student's profile.
+
+    This helps the LIVE COMPETITION recognize that
+    the student is already logged in.
+*/
+
+async function restoreCurrentStudent() {
+
+    if (
+        !supabaseReady ||
+        !supabaseClient
+    ) {
+
+        return null;
+
     }
 
 
@@ -3483,133 +5291,68 @@ async function loadLeaderboard() {
             data,
             error
         } =
-            await supabaseClient.rpc(
-                "get_leaderboard",
-                {
-                    p_limit: 100
-                }
-            );
+            await supabaseClient
+                .auth
+                .getSession();
 
 
         if (error) {
 
             console.error(
-                "Leaderboard load error:",
+                "Could not restore Supabase session:",
                 error
             );
 
-            section.hidden = true;
+            return null;
 
-            return;
         }
 
 
-        const rows =
-            Array.isArray(data)
-                ? data
-                : [];
+        const session =
+            data?.session;
 
 
-        if (!rows.length) {
+        if (
+            !session ||
+            !session.user
+        ) {
 
-            section.hidden = true;
+            currentStudent =
+                null;
 
-            container.innerHTML = "";
+            return null;
 
-            return;
         }
 
 
-        section.hidden = false;
+        /*
+            Load the student's profile.
+        */
+
+        await loadCurrentStudent(
+            session.user
+        );
 
 
-        container.innerHTML =
-            rows.map(
-                function (student, index) {
+        /*
+            Update the navigation area
+            after restoring the student.
+        */
 
-                    const position =
-                        index + 1;
-
-
-                    const medal =
-                        position === 1
-                            ? "🥇"
-                            : position === 2
-                                ? "🥈"
-                                : position === 3
-                                    ? "🥉"
-                                    : String(position)
-                                        .padStart(2, "0");
+        updateUserArea();
 
 
-                    return `
-
-                        <div class="leaderboard-row">
-
-                            <div class="leaderboard-rank">
-                                ${medal}
-                            </div>
-
-
-                            <div class="leaderboard-student">
-
-                                <strong>
-                                    ${escapeHTML(
-                                        student.name || "Student"
-                                    )}
-                                </strong>
-
-                                <span>
-                                    ${escapeHTML(
-                                        student.institute || "Other"
-                                    )}
-                                </span>
-
-                            </div>
-
-
-                            <div class="leaderboard-score">
-
-                                <strong>
-                                    ${Number(
-                                        student.total_score || 0
-                                    )}
-                                </strong>
-
-                                <span>
-                                    points
-                                </span>
-
-                            </div>
-
-
-                            <div class="leaderboard-battles">
-
-                                ${Number(
-                                    student.total_battles || 0
-                                )}
-                                battle${Number(
-                                    student.total_battles || 0
-                                ) === 1 ? "" : "s"}
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            ).join("");
+        return currentStudent;
 
 
     } catch (error) {
 
         console.error(
-            "Leaderboard unexpected error:",
+            "Could not restore current student:",
             error
         );
 
-        section.hidden = true;
+        return null;
 
     }
 
@@ -3617,54 +5360,2377 @@ async function loadLeaderboard() {
 
 
 /* =========================================================
-   ESCAPE HTML
+   REGISTRATION
 ========================================================= */
 
-function escapeHTML(value) {
+function setupRegistration() {
 
-    const div =
-        document.createElement("div");
-
-
-    div.textContent =
-        String(value);
-
-
-    return div.innerHTML;
-
-}
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function scrollToSection(sectionId) {
-
-    const section =
-        document.getElementById(sectionId);
-
-
-    if (!section) {
-
-        console.error(
-            "Section not found:",
-            sectionId
+    const form =
+        document.getElementById(
+            "registrationForm"
         );
 
+
+    if (!form) {
         return;
     }
 
 
-    section.scrollIntoView({
+    form.addEventListener(
+        "submit",
+        async function (event) {
 
-        behavior: "smooth",
+            event.preventDefault();
 
-        block: "start"
 
-    });
+            if (
+                !requireSupabase(
+                    "Registration is unavailable because the database connection is not ready."
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const name =
+                document
+                    .getElementById(
+                        "studentName"
+                    )
+                    .value
+                    .trim();
+
+
+            const institute =
+                document
+                    .getElementById(
+                        "studentInstitute"
+                    )
+                    .value;
+
+
+            const email =
+                document
+                    .getElementById(
+                        "studentEmail"
+                    )
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            const password =
+                document
+                    .getElementById(
+                        "studentPassword"
+                    )
+                    .value;
+
+
+            const submitButton =
+                form.querySelector(
+                    "button[type='submit']"
+                );
+
+
+            if (
+                !name ||
+                !institute ||
+                !email ||
+                !password
+            ) {
+
+                showAuthMessage(
+                    "Please complete all fields.",
+                    "error",
+                    "registrationModal"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                password.length < 6
+            ) {
+
+                showAuthMessage(
+                    "Password must contain at least 6 characters.",
+                    "error",
+                    "registrationModal"
+                );
+
+                return;
+
+            }
+
+
+            submitButton.disabled =
+                true;
+
+            submitButton.textContent =
+                "Creating account...";
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .signUp({
+
+                        email,
+
+                        password,
+
+                        options: {
+
+                            data: {
+
+                                full_name:
+                                    name,
+
+                                institute:
+                                    institute
+
+                            }
+
+                        }
+
+                    });
+
+
+            submitButton.disabled =
+                false;
+
+            submitButton.textContent =
+                "Create Student Profile";
+
+
+            if (error) {
+
+                showAuthMessage(
+                    error.message,
+                    "error",
+                    "registrationModal"
+                );
+
+                return;
+
+            }
+
+
+            form.reset();
+
+
+            if (
+                data.session &&
+                data.user
+            ) {
+
+                await loadCurrentStudent(
+                    data.user
+                );
+
+
+                closeRegistration();
+
+
+                updateUserArea();
+
+
+                alert(
+                    `Welcome ${name}! You are now representing ${institute}.`
+                );
+
+
+                /*
+                    Refresh live competition after
+                    successful registration.
+                */
+
+                if (
+                    typeof refreshLiveCompetitionAfterLogin ===
+                    "function"
+                ) {
+
+                    await refreshLiveCompetitionAfterLogin();
+
+                }
+
+
+            } else {
+
+                closeRegistration();
+
+
+                alert(
+                    "Account created successfully. Please check your email to confirm your account, then log in."
+                );
+
+
+                openLogin();
+
+            }
+
+        }
+    );
 
 }
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function setupLogin() {
+
+    const form =
+        document.getElementById(
+            "loginForm"
+        );
+
+
+    if (!form) {
+        return;
+    }
+
+
+    form.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            if (
+                !requireSupabase(
+                    "Login is unavailable because the database connection is not ready."
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const email =
+                document
+                    .getElementById(
+                        "loginEmail"
+                    )
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            const password =
+                document
+                    .getElementById(
+                        "loginPassword"
+                    )
+                    .value;
+
+
+            const submitButton =
+                form.querySelector(
+                    "button[type='submit']"
+                );
+
+
+            if (
+                !email ||
+                !password
+            ) {
+
+                showAuthMessage(
+                    "Please enter your email and password.",
+                    "error",
+                    "loginModal"
+                );
+
+                return;
+
+            }
+
+
+            submitButton.disabled =
+                true;
+
+            submitButton.textContent =
+                "Signing in...";
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .signInWithPassword({
+
+                        email,
+
+                        password
+
+                    });
+
+
+            submitButton.disabled =
+                false;
+
+            submitButton.textContent =
+                "Login";
+
+
+            if (error) {
+
+                showAuthMessage(
+                    error.message,
+                    "error",
+                    "loginModal"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                data.user
+            ) {
+
+                await loadCurrentStudent(
+                    data.user
+                );
+
+            }
+
+
+            form.reset();
+
+
+            closeLogin();
+
+
+            updateUserArea();
+
+
+            /*
+                Refresh live competition after login.
+
+                This is important because the user may
+                immediately open the live competition
+                after logging in.
+            */
+
+            if (
+                typeof refreshLiveCompetitionAfterLogin ===
+                "function"
+            ) {
+
+                await refreshLiveCompetitionAfterLogin();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   AUTH MESSAGE
+========================================================= */
+
+function showAuthMessage(
+    message,
+    type = "info",
+    modalId = ""
+) {
+
+    const scope =
+        modalId
+            ? document.getElementById(
+                modalId
+            )
+            : document;
+
+
+    const element =
+        scope
+            ? scope.querySelector(
+                ".auth-message"
+            )
+            : null;
+
+
+    if (!element) {
+        return;
+    }
+
+
+    element.textContent =
+        message;
+
+
+    element.className =
+        `auth-message ${type}`;
+
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function loadCurrentStudent(
+    user
+) {
+
+    if (
+        !supabaseReady ||
+        !supabaseClient
+    ) {
+
+        currentStudent =
+            null;
+
+        return;
+
+    }
+
+
+    if (!user) {
+
+        currentStudent =
+            null;
+
+        return;
+
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("profiles")
+            .select(
+                "id, full_name, institute, institute_id, email, total_score, total_battles"
+            )
+            .eq(
+                "id",
+                user.id
+            )
+            .single();
+
+
+    if (error) {
+
+        console.error(
+            "Could not load student profile:",
+            error
+        );
+
+        currentStudent =
+            null;
+
+        return;
+
+    }
+
+
+    currentStudent = {
+
+        id:
+            data.id,
+
+        name:
+            data.full_name,
+
+        institute:
+            data.institute,
+
+        institute_id:
+            data.institute_id,
+
+        email:
+            data.email ||
+            user.email,
+
+        score:
+            Number(
+                data.total_score || 0
+            ),
+
+        battles:
+            Number(
+                data.total_battles || 0
+            )
+
+    };
+
+}
+
+
+/* =========================================================
+   OPEN / CLOSE AUTH MODALS
+========================================================= */
+
+function openRegistration() {
+
+    if (currentStudent) {
+
+        openProfile();
+
+        return;
+
+    }
+
+
+    closeLogin();
+
+
+    const modal =
+        document.getElementById(
+            "registrationModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        "open"
+    );
+
+
+    document.body.style.overflow =
+        "hidden";
+
+}
+
+
+function closeRegistration() {
+
+    const modal =
+        document.getElementById(
+            "registrationModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    document.body.style.overflow =
+        "";
+
+}
+
+
+function openLogin() {
+
+    if (currentStudent) {
+
+        openProfile();
+
+        return;
+
+    }
+
+
+    closeRegistration();
+
+
+    const modal =
+        document.getElementById(
+            "loginModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        "open"
+    );
+
+
+    document.body.style.overflow =
+        "hidden";
+
+}
+
+
+function closeLogin() {
+
+    const modal =
+        document.getElementById(
+            "loginModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    document.body.style.overflow =
+        "";
+
+}
+
+
+function switchToLogin() {
+
+    closeRegistration();
+
+    openLogin();
+
+}
+
+
+function switchToRegistration() {
+
+    closeLogin();
+
+    openRegistration();
+
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function openProfile() {
+
+    if (!currentStudent) {
+
+        openLogin();
+
+        return;
+
+    }
+
+
+    const name =
+        document.getElementById(
+            "profileName"
+        );
+
+
+    const institute =
+        document.getElementById(
+            "profileInstitute"
+        );
+
+
+    const email =
+        document.getElementById(
+            "profileEmail"
+        );
+
+
+    const score =
+        document.getElementById(
+            "profileScore"
+        );
+
+
+    const battles =
+        document.getElementById(
+            "profileBattles"
+        );
+
+
+    if (name) {
+
+        name.textContent =
+            currentStudent.name;
+
+    }
+
+
+    if (institute) {
+
+        institute.textContent =
+            currentStudent.institute ||
+            "Other";
+
+    }
+
+
+    if (email) {
+
+        email.textContent =
+            currentStudent.email;
+
+    }
+
+
+    if (score) {
+
+        score.textContent =
+            currentStudent.score || 0;
+
+    }
+
+
+    if (battles) {
+
+        battles.textContent =
+            currentStudent.battles || 0;
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "profileModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            "open"
+        );
+
+        document.body.style.overflow =
+            "hidden";
+
+    }
+
+}
+
+
+function closeProfile() {
+
+    const modal =
+        document.getElementById(
+            "profileModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    document.body.style.overflow =
+        "";
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logoutStudent() {
+
+    if (
+        !requireSupabase(
+            "Logout is unavailable because the database connection is not ready."
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const confirmLogout =
+        confirm(
+            "Are you sure you want to logout?"
+        );
+
+
+    if (!confirmLogout) {
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .auth
+            .signOut();
+
+
+    if (error) {
+
+        alert(
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    currentStudent =
+        null;
+
+
+    closeProfile();
+
+    updateUserArea();
+
+}
+
+
+/* =========================================================
+   UPDATE USER AREA
+========================================================= */
+
+function updateUserArea() {
+
+    const userArea =
+        document.getElementById(
+            "userArea"
+        );
+
+
+    if (!userArea) {
+        return;
+    }
+
+
+    if (currentStudent) {
+
+        userArea.innerHTML = `
+
+            <button
+                class="nav-cta"
+                onclick="openProfile()"
+            >
+                ${escapeHTML(
+                    currentStudent.name
+                )}
+            </button>
+
+        `;
+
+    } else {
+
+        userArea.innerHTML = `
+
+            <button
+                class="nav-cta"
+                onclick="openLogin()"
+            >
+                Login
+            </button>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   NORMAL QUESTION OPTIONS HELPER
+========================================================= */
+
+function getNormalQuestionOptions(
+    question
+) {
+
+    if (!question) {
+        return [];
+    }
+
+
+    /* =====================================================
+       FORMAT 1:
+       options: ["A", "B", "C", "D"]
+    ===================================================== */
+
+    if (
+        Array.isArray(
+            question.options
+        )
+    ) {
+
+        return question.options
+            .filter(
+                option =>
+                    option !== null &&
+                    option !== undefined &&
+                    String(option).trim() !== ""
+            )
+            .map(
+                option =>
+                    String(option)
+            );
+
+    }
+
+
+    /* =====================================================
+       FORMAT 2:
+       options stored as JSON string
+    ===================================================== */
+
+    if (
+        typeof question.options ===
+        "string"
+    ) {
+
+        const raw =
+            question.options.trim();
+
+
+        if (raw) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(
+                        raw
+                    );
+
+
+                if (
+                    Array.isArray(parsed)
+                ) {
+
+                    return parsed
+                        .filter(
+                            option =>
+                                option !== null &&
+                                option !== undefined &&
+                                String(option).trim() !== ""
+                        )
+                        .map(
+                            option =>
+                                String(option)
+                        );
+
+                }
+
+            } catch (error) {
+
+                /*
+                    Continue below.
+                */
+
+            }
+
+
+            /* =============================================
+               FORMAT 3:
+               Option A|Option B|Option C|Option D
+            ============================================= */
+
+            if (
+                raw.includes("|")
+            ) {
+
+                return raw
+                    .split("|")
+                    .map(
+                        option =>
+                            option.trim()
+                    )
+                    .filter(
+                        option =>
+                            option !== ""
+                    );
+
+            }
+
+
+            /* =============================================
+               FORMAT 4:
+               Option A,Option B,Option C,Option D
+            ============================================= */
+
+            if (
+                raw.includes(",")
+            ) {
+
+                return raw
+                    .split(",")
+                    .map(
+                        option =>
+                            option.trim()
+                    )
+                    .filter(
+                        option =>
+                            option !== ""
+                    );
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       FORMAT 5:
+       choices
+    ===================================================== */
+
+    if (
+        Array.isArray(
+            question.choices
+        )
+    ) {
+
+        return question.choices
+            .filter(
+                option =>
+                    option !== null &&
+                    option !== undefined &&
+                    String(option).trim() !== ""
+            )
+            .map(
+                option =>
+                    String(option)
+            );
+
+    }
+
+
+    /* =====================================================
+       FORMAT 6:
+       answers
+    ===================================================== */
+
+    if (
+        Array.isArray(
+            question.answers
+        )
+    ) {
+
+        return question.answers
+            .filter(
+                option =>
+                    option !== null &&
+                    option !== undefined &&
+                    String(option).trim() !== ""
+            )
+            .map(
+                option =>
+                    String(option)
+            );
+
+    }
+
+
+    /* =====================================================
+       FORMAT 7:
+       option_a / option_b / option_c / option_d
+    ===================================================== */
+
+    const options = [
+
+        question.option_a,
+
+        question.option_b,
+
+        question.option_c,
+
+        question.option_d
+
+    ];
+
+
+    const filtered =
+        options.filter(
+            option =>
+                option !== null &&
+                option !== undefined &&
+                String(option).trim() !== ""
+        );
+
+
+    if (
+        filtered.length
+    ) {
+
+        return filtered.map(
+            option =>
+                String(option)
+        );
+
+    }
+
+
+    /* =====================================================
+       FORMAT 8:
+       optionA / optionB / optionC / optionD
+    ===================================================== */
+
+    const camelOptions = [
+
+        question.optionA,
+
+        question.optionB,
+
+        question.optionC,
+
+        question.optionD
+
+    ];
+
+
+    const camelFiltered =
+        camelOptions.filter(
+            option =>
+                option !== null &&
+                option !== undefined &&
+                String(option).trim() !== ""
+        );
+
+
+    if (
+        camelFiltered.length
+    ) {
+
+        return camelFiltered.map(
+            option =>
+                String(option)
+        );
+
+    }
+
+
+    /* =====================================================
+       FORMAT 9:
+       a / b / c / d
+    ===================================================== */
+
+    const letterOptions = [
+
+        question.a,
+
+        question.b,
+
+        question.c,
+
+        question.d
+
+    ];
+
+
+    const letterFiltered =
+        letterOptions.filter(
+            option =>
+                option !== null &&
+                option !== undefined &&
+                String(option).trim() !== ""
+        );
+
+
+    if (
+        letterFiltered.length
+    ) {
+
+        return letterFiltered.map(
+            option =>
+                String(option)
+        );
+
+    }
+
+
+    return [];
+
+}
+
+
+/* =========================================================
+   NORMAL QUESTION CORRECT ANSWER
+========================================================= */
+
+function getNormalCorrectAnswer(
+    question
+) {
+
+    if (!question) {
+        return -1;
+    }
+
+
+    let answer =
+        question.answer;
+
+
+    if (
+        answer === undefined ||
+        answer === null
+    ) {
+
+        answer =
+            question.correct_answer;
+
+    }
+
+
+    if (
+        answer === undefined ||
+        answer === null
+    ) {
+
+        answer =
+            question.correctAnswer;
+
+    }
+
+
+    if (
+        answer === undefined ||
+        answer === null
+    ) {
+
+        answer =
+            question.correct_option;
+
+    }
+
+
+    if (
+        answer === undefined ||
+        answer === null
+    ) {
+
+        answer =
+            question.correct_option_index;
+
+    }
+
+
+    if (
+        answer === undefined ||
+        answer === null
+    ) {
+
+        answer =
+            question.correct_index;
+
+    }
+
+
+    if (
+        typeof answer ===
+        "number"
+    ) {
+
+        if (
+            answer >= 0 &&
+            answer <= 3
+        ) {
+
+            return answer;
+
+        }
+
+
+        if (
+            answer >= 1 &&
+            answer <= 4
+        ) {
+
+            return answer - 1;
+
+        }
+
+    }
+
+
+    if (
+        typeof answer ===
+        "string"
+    ) {
+
+        const normalized =
+            answer
+                .trim()
+                .toUpperCase();
+
+
+        if (
+            [
+                "A",
+                "B",
+                "C",
+                "D"
+            ].includes(
+                normalized
+            )
+        ) {
+
+            return (
+                "ABCD".indexOf(
+                    normalized
+                )
+            );
+
+        }
+
+
+        const numeric =
+            Number(
+                normalized
+            );
+
+
+        if (
+            Number.isFinite(
+                numeric
+            )
+        ) {
+
+            if (
+                numeric >= 0 &&
+                numeric <= 3
+            ) {
+
+                return numeric;
+
+            }
+
+
+            if (
+                numeric >= 1 &&
+                numeric <= 4
+            ) {
+
+                return numeric - 1;
+
+            }
+
+        }
+
+    }
+
+
+    return -1;
+
+}
+
+
+ /* =========================================================
+   START NORMAL BATTLE
+========================================================= */
+
+function startBattle(
+    category
+) {
+
+    if (!currentStudent) {
+
+        alert(
+            "Please create your student profile before starting a battle."
+        );
+
+        openRegistration();
+
+        return;
+
+    }
+
+
+    if (
+        !questionBank ||
+        !questionBank[category]
+    ) {
+
+        alert(
+            "This battle category is not available."
+        );
+
+        return;
+
+    }
+
+
+    let categoryQuestions =
+        questionBank[category];
+
+
+    if (
+        !Array.isArray(
+            categoryQuestions
+        )
+    ) {
+
+        if (
+            categoryQuestions &&
+            Array.isArray(
+                categoryQuestions.questions
+            )
+        ) {
+
+            categoryQuestions =
+                categoryQuestions.questions;
+
+        } else {
+
+            console.error(
+                "Invalid question category:",
+                categoryQuestions
+            );
+
+            alert(
+                "The questions for this category are not configured correctly."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    if (
+        !categoryQuestions.length
+    ) {
+
+        alert(
+            "There are no questions available in this category."
+        );
+
+        return;
+
+    }
+
+
+    currentCategory =
+        category;
+
+    currentQuestion =
+        0;
+
+    currentScore =
+        0;
+
+    answerLocked =
+        false;
+
+
+    battleQuestions =
+        [...categoryQuestions];
+
+
+    shuffleArray(
+        battleQuestions
+    );
+
+
+    battleQuestions =
+        battleQuestions.slice(
+            0,
+            50
+        );
+
+
+    const title =
+        document.getElementById(
+            "battleTitle"
+        );
+
+
+    if (title) {
+
+        title.textContent =
+            category;
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "battleModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            "open"
+        );
+
+        document.body.style.overflow =
+            "hidden";
+
+    }
+
+
+    showQuestion();
+
+}
+
+
+/* =========================================================
+   CLOSE BATTLE
+========================================================= */
+
+function closeBattle() {
+
+    const battleModal =
+        document.getElementById(
+            "battleModal"
+        );
+
+
+    if (
+        battleModal
+    ) {
+
+        battleModal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    document.body.style.overflow =
+        "";
+
+
+    if (
+        typeof battleTimer !==
+        "undefined" &&
+        battleTimer
+    ) {
+
+        clearInterval(
+            battleTimer
+        );
+
+        battleTimer =
+            null;
+
+    }
+
+
+    currentQuestion =
+        0;
+
+    currentScore =
+        0;
+
+    answerLocked =
+        false;
+
+    battleQuestions =
+        [];
+
+}
+
+
+/* =========================================================
+   SHOW NORMAL QUESTION
+========================================================= */
+
+function showQuestion() {
+
+    const question =
+        battleQuestions[
+            currentQuestion
+        ];
+
+
+    if (!question) {
+
+        finishBattle();
+
+        return;
+
+    }
+
+
+    answerLocked =
+        false;
+
+
+    const questionText =
+        document.getElementById(
+            "questionText"
+        );
+
+
+    const optionsContainer =
+        document.getElementById(
+            "answerOptions"
+        );
+
+
+    const questionNumber =
+        document.getElementById(
+            "questionNumber"
+        );
+
+
+    const scoreElement =
+        document.getElementById(
+            "currentScore"
+        );
+
+
+    /* =====================================================
+       QUESTION TEXT
+    ===================================================== */
+
+    const text =
+        question.q ||
+        question.question ||
+        question.question_text ||
+        question.text ||
+        "";
+
+
+    if (
+        questionText
+    ) {
+
+        questionText.textContent =
+            text;
+
+    }
+
+
+    /* =====================================================
+       QUESTION NUMBER
+    ===================================================== */
+
+    if (
+        questionNumber
+    ) {
+
+        questionNumber.textContent =
+            `Question ${currentQuestion + 1} of ${battleQuestions.length}`;
+
+    }
+
+
+    /* =====================================================
+       SCORE
+    ===================================================== */
+
+    if (
+        scoreElement
+    ) {
+
+        scoreElement.textContent =
+            currentScore;
+
+    }
+
+
+    /* =====================================================
+       GET OPTIONS USING HELPER
+    ===================================================== */
+
+    const options =
+        getNormalQuestionOptions(
+            question
+        );
+
+
+    console.log(
+        "Current normal battle question:",
+        question
+    );
+
+
+    console.log(
+        "Detected normal battle options:",
+        options
+    );
+
+
+    if (
+        !optionsContainer
+    ) {
+
+        console.error(
+            "answerOptions element was not found."
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       NO OPTIONS FOUND
+    ===================================================== */
+
+    if (
+        !options.length
+    ) {
+
+        optionsContainer.innerHTML = `
+
+            <div class="competition-placeholder">
+
+                <div class="placeholder-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <strong>
+                        Answer options are unavailable
+                    </strong>
+
+                    <small>
+                        This question does not contain
+                        usable answer options.
+                    </small>
+
+                </div>
+
+            </div>
+
+        `;
+
+        console.error(
+            "No answer options found for question:",
+            question
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       CREATE OPTIONS
+    ===================================================== */
+
+    optionsContainer.innerHTML =
+        options
+            .map(
+                function (
+                    option,
+                    index
+                ) {
+
+                    return `
+
+                        <button
+                            type="button"
+                            class="answer-option"
+                            onclick="selectAnswer(${index})"
+                        >
+
+                            <span>
+                                ${String.fromCharCode(
+                                    65 + index
+                                )}.
+                            </span>
+
+                            ${escapeHTML(
+                                option
+                            )}
+
+                        </button>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   SELECT NORMAL ANSWER
+========================================================= */
+
+function selectAnswer(
+    selectedIndex
+) {
+
+    if (
+        answerLocked
+    ) {
+
+        return;
+
+    }
+
+
+    const question =
+        battleQuestions[
+            currentQuestion
+        ];
+
+
+    if (!question) {
+
+        return;
+
+    }
+
+
+    answerLocked =
+        true;
+
+
+    const correctAnswer =
+        getNormalCorrectAnswer(
+            question
+        );
+
+
+    const buttons =
+        document.querySelectorAll(
+            ".answer-option"
+        );
+
+
+    buttons.forEach(
+        function (
+            button,
+            index
+        ) {
+
+            button.disabled =
+                true;
+
+
+            if (
+                index ===
+                correctAnswer
+            ) {
+
+                button.classList.add(
+                    "correct"
+                );
+
+            }
+
+
+            if (
+                index ===
+                selectedIndex &&
+                selectedIndex !==
+                    correctAnswer
+            ) {
+
+                button.classList.add(
+                    "incorrect"
+                );
+
+            }
+
+        }
+    );
+
+
+    if (
+        Number(
+            selectedIndex
+        ) ===
+        Number(
+            correctAnswer
+        )
+    ) {
+
+        currentScore +=
+            1;
+
+    }
+
+
+    const scoreElement =
+        document.getElementById(
+            "currentScore"
+        );
+
+
+    if (
+        scoreElement
+    ) {
+
+        scoreElement.textContent =
+            currentScore;
+
+    }
+
+
+    setTimeout(
+        function () {
+
+            currentQuestion +=
+                1;
+
+
+            showQuestion();
+
+        },
+        400
+    );
+
+}
+
+
+/* =========================================================
+   FINISH NORMAL BATTLE
+========================================================= */
+
+function finishBattle() {
+
+    const modal =
+        document.getElementById(
+            "battleModal"
+        );
+
+
+    if (
+        modal
+    ) {
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+
+    document.body.style.overflow =
+        "";
+
+
+    alert(
+        `Battle complete! Your score is ${currentScore}/${battleQuestions.length}.`
+    );
+
+}
+
+
+/* =========================================================
+   SHUFFLE
+========================================================= */
+
+function shuffleArray(
+    array
+) {
+
+    for (
+        let i =
+            array.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() *
+                (i + 1)
+            );
+
+
+        [
+            array[i],
+            array[j]
+        ] =
+        [
+            array[j],
+            array[i]
+        ];
+
+    }
+
+
+    return array;
+
+}
+
+
+/* =========================================================
+   PAGE UNLOAD CLEANUP
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    function () {
+
+        if (
+            typeof clearLiveQuestionTimer ===
+            "function"
+        ) {
+
+            clearLiveQuestionTimer();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   RESTORE LOGIN SESSION WHEN PAGE LOADS
+========================================================= */
+
+/*
+    This is important for the LIVE COMPETITION.
+
+    Supabase may already have the user logged in,
+    but currentStudent may still be null after
+    refreshing the website.
+
+    We restore the profile from the current session.
+*/
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+        try {
+
+            if (
+                typeof restoreCurrentStudent ===
+                "function"
+            ) {
+
+                await restoreCurrentStudent();
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Could not restore student on page load:",
+                error
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   AUTOMATIC LIVE COMPETITION STATUS CHECK
+========================================================= */
+
+/*
+    This checks Supabase every 10 seconds.
+
+    When the database changes:
+
+        waiting
+             ↓
+           live
+
+    the website detects the change automatically.
+
+    This means a student who is already on the
+    website does NOT need to refresh the page.
+*/
+
+let liveCompetitionStatusWatcher =
+    null;
+
+
+let lastKnownLiveCompetitionStatus =
+    null;
+
+
+let lastKnownLiveCompetitionId =
+    null;
+
+
+/* =========================================================
+   START LIVE COMPETITION STATUS WATCHER
+========================================================= */
+
+function startLiveCompetitionStatusWatcher() {
+
+    /*
+        Prevent multiple watchers from
+        being created.
+    */
+
+    if (
+        liveCompetitionStatusWatcher
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+        Check immediately.
+    */
+
+    checkLiveCompetitionStatus();
+
+
+    /*
+        Then check every 10 seconds.
+    */
+
+    liveCompetitionStatusWatcher =
+        setInterval(
+            async function () {
+
+                await checkLiveCompetitionStatus();
+
+            },
+            10000
+        );
+
+}
+
+
+/* =========================================================
+   CHECK LIVE COMPETITION STATUS
+========================================================= */
+
+async function checkLiveCompetitionStatus() {
+
+    /*
+        Make sure Supabase is available.
+
+        We check supabaseClient directly so this
+        does not depend on another variable such
+        as supabaseReady existing in your project.
+    */
+
+    if (
+        typeof supabaseClient ===
+            "undefined" ||
+        !supabaseClient
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const {
+            data: competition,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "live_competitions"
+                )
+                .select(
+                    "id, title, status, total_questions, current_question, scheduled_start, started_at, finished_at, created_at"
+                )
+                .or(
+                    "status.eq.waiting,status.eq.scheduled,status.eq.pending,status.eq.live,status.eq.active,status.eq.running,status.eq.started"
+                )
+                .order(
+                    "scheduled_start",
+                    {
+                        ascending: true,
+                        nullsFirst: false
+                    }
+                )
+                .limit(
+                    1
+                )
+                .maybeSingle();
+
+
+        if (
+            error
+        ) {
+
+            console.error(
+                "Live competition status check failed:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        /*
+            No waiting/live competition.
+        */
+
+        if (
+            !competition
+        ) {
+
+            return;
+
+        }
+
+
+        const newStatus =
+            String(
+                competition.status ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        const competitionChanged =
+            lastKnownLiveCompetitionId !==
+                competition.id ||
+            lastKnownLiveCompetitionStatus !==
+                newStatus;
+
+
+        /*
+            Remember the current state.
+        */
+
+        lastKnownLiveCompetitionId =
+            competition.id;
+
+
+        lastKnownLiveCompetitionStatus =
+            newStatus;
+
+
+        /*
+            Only reload the competition UI
+            when the competition actually changes.
+        */
+
+        if (
+            competitionChanged
+        ) {
+
+            console.log(
+                "Live competition status changed:",
+                competition
+            );
+
+
+            /*
+                Your existing function will reload
+                the competition information.
+
+                We check that it exists first so
+                this new code cannot crash the page
+                if the function has a different name
+                or has not loaded yet.
+            */
+
+            if (
+                typeof loadLiveCompetition ===
+                "function"
+            ) {
+
+                await loadLiveCompetition();
+
+            }
+
+        }
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Automatic live competition check failed:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   STOP LIVE COMPETITION STATUS WATCHER
+========================================================= */
+
+function stopLiveCompetitionStatusWatcher() {
+
+    if (
+        liveCompetitionStatusWatcher
+    ) {
+
+        clearInterval(
+            liveCompetitionStatusWatcher
+        );
+
+        liveCompetitionStatusWatcher =
+            null;
+
+    }
+
+}
+
+
+/* =========================================================
+   START WATCHER AFTER PAGE LOAD
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /*
+            Give the existing Supabase initialization
+            and login restoration a moment to finish.
+        */
+
+        setTimeout(
+            function () {
+
+                startLiveCompetitionStatusWatcher();
+
+            },
+            2000
+        );
+
+    }
+);
+
+
+/* =========================================================
+   CLEANUP WATCHER
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    function () {
+
+        stopLiveCompetitionStatusWatcher();
+
+    }
+);
 
 
 /* =========================================================
