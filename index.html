@@ -17,13 +17,77 @@
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /*
+        =========================================================
+        NAVIGATION FIX
+        =========================================================
+        Real anchor navigation works even if JavaScript has
+        another error somewhere in script.js.
+        */
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
+
+        section,
+        main {
+            scroll-margin-top: 100px;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        /*
+        =========================================================
+        LIVE COMPETITION ISOLATION
+        =========================================================
+        The live competition is displayed only inside this
+        dedicated container.
+
+        Normal category battles continue to use battleModal
+        and startBattle().
+        */
+
+        #liveCompetitionContent {
+            width: 100%;
+        }
+
+        /*
+        Make anchor navigation reliable when the page has
+        a sticky/fixed header.
+        */
+
+        #home,
+        #institutes,
+        #battles,
+        #leaderboardSection {
+            scroll-margin-top: 110px;
+        }
+    </style>
 </head>
+
 
 <body>
 
-    <!-- ===============================
-         HEADER
-    ================================ -->
+    <!-- =====================================================
+         HEADER / NAVIGATION
+    ====================================================== -->
 
     <header class="site-header">
 
@@ -48,24 +112,29 @@
 
         <nav class="nav">
 
-            <button onclick="scrollToSection('home')">
+            <!-- REAL HTML NAVIGATION -->
+            <a href="#home">
                 Home
-            </button>
+            </a>
 
-            <button onclick="scrollToSection('institutes')">
+            <a href="#institutes">
                 Institutes
-            </button>
+            </a>
 
-            <button onclick="scrollToSection('battles')">
+            <a href="#battles">
                 Battles
-            </button>
+            </a>
 
 
             <div id="userArea">
 
-              <button class="primary-btn full" onclick="openRegistration()">
-    Join Student Battle
-</button>
+                <button
+                    type="button"
+                    class="primary-btn full"
+                    onclick="openRegistration()"
+                >
+                    Join Student Battle
+                </button>
 
             </div>
 
@@ -74,14 +143,16 @@
     </header>
 
 
-    <!-- ===============================
+    <!-- =====================================================
          MAIN
-    ================================ -->
+    ====================================================== -->
 
     <main id="home">
 
 
-        <!-- HERO -->
+        <!-- =================================================
+             HERO
+        ================================================== -->
 
         <section class="hero">
 
@@ -112,6 +183,7 @@
                 <div class="hero-actions">
 
                     <button
+                        type="button"
                         class="primary-btn"
                         onclick="openRegistration()"
                     >
@@ -119,12 +191,13 @@
                     </button>
 
 
-                    <button
+                    <a
+                        href="#battles"
                         class="secondary-btn"
-                        onclick="scrollToSection('battles')"
+                        style="text-decoration:none;"
                     >
                         Explore Battles
-                    </button>
+                    </a>
 
                 </div>
 
@@ -151,115 +224,255 @@
             </div>
 
 
-          <!-- ===============================
-     COMPETITION STATUS CARD
-================================ -->
+            <!-- =================================================
+                 LIVE COMPETITION STATUS CARD
+                 
+                 IMPORTANT:
+                 This is ONLY for the separate 100-question
+                 live competition.
+                 
+                 It does NOT use:
+                 - categories
+                 - normal questions
+                 - battleModal
+                 - startBattle()
+                 - 50-question category battles
+            ================================================== -->
 
-<div class="hero-card">
+            <div class="hero-card">
 
-    <div class="card-glow"></div>
+                <div class="card-glow"></div>
 
-    <div class="battle-card-top">
+                <div class="battle-card-top">
 
-        <span>COMPETITION STATUS</span>
+                    <span>
+                        COMPETITION STATUS
+                    </span>
 
-        <span class="status-dot">●</span>
+                    <span class="status-dot">
+                        ●
+                    </span>
 
-    </div>
+                </div>
 
 
-    <!-- LIVE COMPETITION CONTENT
-         This area is controlled by script.js.
-    -->
+                <!--
+                    script.js controls this container.
 
-    <div id="liveCompetitionContent">
+                    Live competition:
+                    100 questions
+                    live_competitions
+                    live_competition_questions
+                    live_participants
+                    live_answers
+                -->
 
-        <div class="eyebrow">
-            ⚔ LIVE COMPETITION
-        </div>
+                <div id="liveCompetitionContent">
 
-        <h3>
-            Checking competition...
-        </h3>
+                    <div class="eyebrow">
+                        ⚔ LIVE COMPETITION
+                    </div>
 
-        <p>
-            Please wait while we check the current Student Battle KHP competition.
-        </p>
+                    <h3>
+                        Checking competition...
+                    </h3>
 
-        <div class="competition-placeholder">
+                    <p>
+                        Please wait while we check the current
+                        Student Battle KHP competition.
+                    </p>
 
-            <div class="placeholder-icon">
-                ⚔
-            </div>
+                    <div class="competition-placeholder">
 
-            <div>
+                        <div class="placeholder-icon">
+                            ⚔
+                        </div>
 
-                <strong>
-                    Live Competition
-                </strong>
+                        <div>
 
-                <small>
-                    Checking the competition status...
-                </small>
+                            <strong>
+                                Live Competition
+                            </strong>
 
-            </div>
+                            <small>
+                                Checking the competition status...
+                            </small>
 
-        </div>
+                        </div>
 
-        <button
-            class="primary-btn full"
-            onclick="loadLiveCompetition()"
-        >
-            CHECK COMPETITION
-        </button>
+                    </div>
 
-    </div>
+                    <button
+                        type="button"
+                        class="primary-btn full"
+                        onclick="loadLiveCompetition()"
+                    >
+                        CHECK COMPETITION
+                    </button>
 
-</div>
-
-</section>
-
-        <!-- ===============================
-             INSTITUTES
-        ================================ -->
-
-        <section class="section" id="institutes">
-
-            <div class="section-heading">
-                <div class="eyebrow">REPRESENT</div>
-                <h2>Universities & Institutes</h2>
-                <p>
-                    Choose the university or institute you represent in the Khairpur region.
-                </p>
-            </div>
-
-            <div class="institute-grid">
-
-                <div class="institute-card featured"><div class="rank">01</div><h3>Shah Abdul Latif University</h3><p>SALU</p><span>Khairpur Mirs, Sindh</span></div>
-                <div class="institute-card"><div class="rank">02</div><h3>Sukkur IBA University</h3><p>SIBA</p><span>Sukkur, Sindh</span></div>
-                <div class="institute-card"><div class="rank">03</div><h3>University of Sindh</h3><p>UOS</p><span>Jamshoro, Sindh</span></div>
-                <div class="institute-card"><div class="rank">04</div><h3>Institute of Business Administration Karachi</h3><p>IBA Karachi</p><span>Karachi, Sindh</span></div>
-                <div class="institute-card"><div class="rank">05</div><h3>NED University of Engineering & Technology</h3><p>NEDUET</p><span>Karachi, Sindh</span></div>
-                <div class="institute-card"><div class="rank">06</div><h3>University of Karachi</h3><p>UOK</p><span>Karachi, Sindh</span></div>
-                <div class="institute-card"><div class="rank">07</div><h3>LUMS</h3><p>LUMS</p><span>Lahore, Punjab</span></div>
-                <div class="institute-card"><div class="rank">08</div><h3>University of the Punjab</h3><p>PU</p><span>Lahore, Punjab</span></div>
-                <div class="institute-card"><div class="rank">09</div><h3>National University of Sciences & Technology</h3><p>NUST</p><span>Islamabad</span></div>
-                <div class="institute-card"><div class="rank">10</div><h3>Quaid-i-Azam University</h3><p>QAU</p><span>Islamabad</span></div>
-                <div class="institute-card"><div class="rank">11</div><h3>COMSATS University Islamabad</h3><p>CUI</p><span>Islamabad</span></div>
-                <div class="institute-card"><div class="rank">12</div><h3>University of Peshawar</h3><p>UOP</p><span>Peshawar, Khyber Pakhtunkhwa</span></div>
-                <div class="institute-card"><div class="rank">13</div><h3>Ghulam Ishaq Khan Institute</h3><p>GIKI</p><span>Topi, Khyber Pakhtunkhwa</span></div>
-                <div class="institute-card"><div class="rank">14</div><h3>University of Engineering & Technology Lahore</h3><p>UET Lahore</p><span>Lahore, Punjab</span></div>
-                <div class="institute-card"><div class="rank">15</div><h3>Aga Khan University</h3><p>AKU</p><span>Karachi, Sindh</span></div>
-                <div class="institute-card"><div class="rank">16</div><h3>Pakistan Institute of Engineering & Applied Sciences</h3><p>PIEAS</p><span>Islamabad</span></div>
+                </div>
 
             </div>
 
         </section>
 
 
-        <!-- ===============================
-             BATTLES
-        ================================ -->
+        <!-- =================================================
+             INSTITUTES
+        ================================================== -->
+
+        <section
+            class="section"
+            id="institutes"
+        >
+
+            <div class="section-heading">
+
+                <div class="eyebrow">
+                    REPRESENT
+                </div>
+
+                <h2>
+                    Universities & Institutes
+                </h2>
+
+                <p>
+                    Choose the university or institute you represent
+                    in the Khairpur region.
+                </p>
+
+            </div>
+
+
+            <div class="institute-grid">
+
+                <div class="institute-card featured">
+                    <div class="rank">01</div>
+                    <h3>Shah Abdul Latif University</h3>
+                    <p>SALU</p>
+                    <span>Khairpur Mirs, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">02</div>
+                    <h3>Sukkur IBA University</h3>
+                    <p>SIBA</p>
+                    <span>Sukkur, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">03</div>
+                    <h3>University of Sindh</h3>
+                    <p>UOS</p>
+                    <span>Jamshoro, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">04</div>
+                    <h3>Institute of Business Administration Karachi</h3>
+                    <p>IBA Karachi</p>
+                    <span>Karachi, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">05</div>
+                    <h3>NED University of Engineering & Technology</h3>
+                    <p>NEDUET</p>
+                    <span>Karachi, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">06</div>
+                    <h3>University of Karachi</h3>
+                    <p>UOK</p>
+                    <span>Karachi, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">07</div>
+                    <h3>LUMS</h3>
+                    <p>LUMS</p>
+                    <span>Lahore, Punjab</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">08</div>
+                    <h3>University of the Punjab</h3>
+                    <p>PU</p>
+                    <span>Lahore, Punjab</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">09</div>
+                    <h3>National University of Sciences & Technology</h3>
+                    <p>NUST</p>
+                    <span>Islamabad</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">10</div>
+                    <h3>Quaid-i-Azam University</h3>
+                    <p>QAU</p>
+                    <span>Islamabad</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">11</div>
+                    <h3>COMSATS University Islamabad</h3>
+                    <p>CUI</p>
+                    <span>Islamabad</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">12</div>
+                    <h3>University of Peshawar</h3>
+                    <p>UOP</p>
+                    <span>Peshawar, Khyber Pakhtunkhwa</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">13</div>
+                    <h3>Ghulam Ishaq Khan Institute</h3>
+                    <p>GIKI</p>
+                    <span>Topi, Khyber Pakhtunkhwa</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">14</div>
+                    <h3>University of Engineering & Technology Lahore</h3>
+                    <p>UET Lahore</p>
+                    <span>Lahore, Punjab</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">15</div>
+                    <h3>Aga Khan University</h3>
+                    <p>AKU</p>
+                    <span>Karachi, Sindh</span>
+                </div>
+
+                <div class="institute-card">
+                    <div class="rank">16</div>
+                    <h3>Pakistan Institute of Engineering & Applied Sciences</h3>
+                    <p>PIEAS</p>
+                    <span>Islamabad</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             NORMAL CATEGORY BATTLES
+             
+             IMPORTANT:
+             These remain completely separate from the live
+             100-question competition.
+             
+             Each category = 50 questions.
+             startBattle() handles these.
+        ================================================== -->
 
         <section
             class="section battles"
@@ -287,6 +500,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('General Knowledge')"
                 >
@@ -307,6 +521,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('Computer Science')"
                 >
@@ -327,6 +542,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('Mathematics')"
                 >
@@ -347,6 +563,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('English')"
                 >
@@ -367,6 +584,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('Pakistan Studies')"
                 >
@@ -387,6 +605,7 @@
 
 
                 <button
+                    type="button"
                     class="category-card"
                     onclick="startBattle('Current Affairs')"
                 >
@@ -412,60 +631,84 @@
     </main>
 
 
-
-    <!-- ===============================
+    <!-- =====================================================
          LEADERBOARD
-         Hidden until at least one real battle is completed.
-    ================================ -->
+    ====================================================== -->
 
-    <section class="section leaderboard-section" id="leaderboardSection" hidden>
+    <section
+        class="section leaderboard-section"
+        id="leaderboardSection"
+        hidden
+    >
+
         <div class="section-heading">
-            <div class="eyebrow">COMPETITION RESULTS</div>
-            <h2>Leaderboard</h2>
-            <p>Only completed Student Battle KHP results are shown here.</p>
+
+            <div class="eyebrow">
+                COMPETITION RESULTS
+            </div>
+
+            <h2>
+                Leaderboard
+            </h2>
+
+            <p>
+                Only completed Student Battle KHP results
+                are shown here.
+            </p>
+
         </div>
 
-        <div id="leaderboard" class="leaderboard-list"></div>
+
+        <div
+            id="leaderboard"
+            class="leaderboard-list"
+        ></div>
+
     </section>
 
 
-    <!-- ===============================
+    <!-- =====================================================
          FOOTER
-    ================================ -->
+    ====================================================== -->
 
-   <footer class="site-footer">
-    <div class="footer-inner">
+    <footer class="site-footer">
 
-        <div class="footer-brand">
-            Student Battle <span>KHP</span>
+        <div class="footer-inner">
+
+            <div class="footer-brand">
+                Student Battle <span>KHP</span>
+            </div>
+
+            <p class="footer-tagline">
+                Learn. Compete. Improve.
+            </p>
+
+
+            <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=zohaibahmedshar7@gmail.com&su=Student%20Battle%20KHP%20Support"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="footer-contact-btn"
+            >
+                Contact Support
+            </a>
+
+
+            <div class="footer-divider"></div>
+
+
+            <p class="footer-copyright">
+                © 2026 Student Battle KHP. All rights reserved.
+            </p>
+
         </div>
 
-        <p class="footer-tagline">
-            Learn. Compete. Improve.
-        </p>
-
-<a
-    href="https://mail.google.com/mail/?view=cm&fs=1&to=zohaibahmedshar7@gmail.com&su=Student%20Battle%20KHP%20Support"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="footer-contact-btn"
->
-    Contact Support
-</a>
-
-        <div class="footer-divider"></div>
-
-        <p class="footer-copyright">
-            © 2026 Student Battle KHP. All rights reserved.
-        </p>
-
-    </div>
-</footer>
+    </footer>
 
 
-    <!-- ===============================
+    <!-- =====================================================
          REGISTRATION MODAL
-    ================================ -->
+    ====================================================== -->
 
     <div
         id="registrationModal"
@@ -474,8 +717,8 @@
 
         <div class="modal-box">
 
-
             <button
+                type="button"
                 class="modal-close"
                 onclick="closeRegistration()"
             >
@@ -504,7 +747,6 @@
 
 
             <form id="registrationForm">
-
 
                 <div class="form-group">
 
@@ -536,23 +778,75 @@
                         <option value="">
                             Select your institute
                         </option>
-                        <option value="Shah Abdul Latif University — Khairpur Mirs">Shah Abdul Latif University — Khairpur Mirs</option>
-                        <option value="Sukkur IBA University — Sukkur">Sukkur IBA University — Sukkur</option>
-                        <option value="University of Sindh — Jamshoro">University of Sindh — Jamshoro</option>
-                        <option value="IBA Karachi — Karachi">IBA Karachi — Karachi</option>
-                        <option value="NED University of Engineering & Technology — Karachi">NED University — Karachi</option>
-                        <option value="University of Karachi — Karachi">University of Karachi — Karachi</option>
-                        <option value="LUMS — Lahore">LUMS — Lahore</option>
-                        <option value="University of the Punjab — Lahore">University of the Punjab — Lahore</option>
-                        <option value="NUST — Islamabad">NUST — Islamabad</option>
-                        <option value="Quaid-i-Azam University — Islamabad">Quaid-i-Azam University — Islamabad</option>
-                        <option value="COMSATS University Islamabad — Islamabad">COMSATS University Islamabad — Islamabad</option>
-                        <option value="University of Peshawar — Peshawar">University of Peshawar — Peshawar</option>
-                        <option value="GIKI — Topi">GIKI — Topi</option>
-                        <option value="UET Lahore — Lahore">UET Lahore — Lahore</option>
-                        <option value="Aga Khan University — Karachi">Aga Khan University — Karachi</option>
-                        <option value="PIEAS — Islamabad">PIEAS — Islamabad</option>
-                        <option value="Other">Other</option>
+
+                        <option value="Shah Abdul Latif University — Khairpur Mirs">
+                            Shah Abdul Latif University — Khairpur Mirs
+                        </option>
+
+                        <option value="Sukkur IBA University — Sukkur">
+                            Sukkur IBA University — Sukkur
+                        </option>
+
+                        <option value="University of Sindh — Jamshoro">
+                            University of Sindh — Jamshoro
+                        </option>
+
+                        <option value="IBA Karachi — Karachi">
+                            IBA Karachi — Karachi
+                        </option>
+
+                        <option value="NED University of Engineering & Technology — Karachi">
+                            NED University — Karachi
+                        </option>
+
+                        <option value="University of Karachi — Karachi">
+                            University of Karachi — Karachi
+                        </option>
+
+                        <option value="LUMS — Lahore">
+                            LUMS — Lahore
+                        </option>
+
+                        <option value="University of the Punjab — Lahore">
+                            University of the Punjab — Lahore
+                        </option>
+
+                        <option value="NUST — Islamabad">
+                            NUST — Islamabad
+                        </option>
+
+                        <option value="Quaid-i-Azam University — Islamabad">
+                            Quaid-i-Azam University — Islamabad
+                        </option>
+
+                        <option value="COMSATS University Islamabad — Islamabad">
+                            COMSATS University Islamabad — Islamabad
+                        </option>
+
+                        <option value="University of Peshawar — Peshawar">
+                            University of Peshawar — Peshawar
+                        </option>
+
+                        <option value="GIKI — Topi">
+                            GIKI — Topi
+                        </option>
+
+                        <option value="UET Lahore — Lahore">
+                            UET Lahore — Lahore
+                        </option>
+
+                        <option value="Aga Khan University — Karachi">
+                            Aga Khan University — Karachi
+                        </option>
+
+                        <option value="PIEAS — Islamabad">
+                            PIEAS — Islamabad
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
                     </select>
 
                 </div>
@@ -601,11 +895,24 @@
             </form>
 
 
-            <p class="auth-message" aria-live="polite"></p>
+            <p
+                class="auth-message"
+                aria-live="polite"
+            ></p>
+
 
             <p class="modal-note">
+
                 Already have an account?
-                <button type="button" class="auth-switch" onclick="switchToLogin()">Login</button>
+
+                <button
+                    type="button"
+                    class="auth-switch"
+                    onclick="switchToLogin()"
+                >
+                    Login
+                </button>
+
             </p>
 
         </div>
@@ -613,10 +920,9 @@
     </div>
 
 
-
-    <!-- ===============================
+    <!-- =====================================================
          LOGIN MODAL
-    ================================ -->
+    ====================================================== -->
 
     <div
         id="loginModal"
@@ -626,32 +932,42 @@
         <div class="modal-box auth-box">
 
             <button
+                type="button"
                 class="modal-close"
                 onclick="closeLogin()"
             >
                 &times;
             </button>
 
+
             <div class="modal-icon">
                 🔐
             </div>
+
 
             <div class="eyebrow">
                 WELCOME BACK
             </div>
 
+
             <h2>
                 Login to Student Battle
             </h2>
+
 
             <p class="modal-subtitle">
                 Sign in to continue your battles and keep your score.
             </p>
 
+
             <form id="loginForm">
 
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
+
+                    <label for="loginEmail">
+                        Email
+                    </label>
+
                     <input
                         id="loginEmail"
                         type="email"
@@ -659,10 +975,16 @@
                         autocomplete="email"
                         required
                     >
+
                 </div>
 
+
                 <div class="form-group">
-                    <label for="loginPassword">Password</label>
+
+                    <label for="loginPassword">
+                        Password
+                    </label>
+
                     <input
                         id="loginPassword"
                         type="password"
@@ -670,7 +992,9 @@
                         autocomplete="current-password"
                         required
                     >
+
                 </div>
+
 
                 <button
                     class="primary-btn full"
@@ -681,11 +1005,25 @@
 
             </form>
 
-            <p class="auth-message" aria-live="polite"></p>
+
+            <p
+                class="auth-message"
+                aria-live="polite"
+            ></p>
+
 
             <p class="modal-note">
+
                 New to Student Battle?
-                <button type="button" class="auth-switch" onclick="switchToRegistration()">Create an account</button>
+
+                <button
+                    type="button"
+                    class="auth-switch"
+                    onclick="switchToRegistration()"
+                >
+                    Create an account
+                </button>
+
             </p>
 
         </div>
@@ -693,9 +1031,9 @@
     </div>
 
 
-    <!-- ===============================
+    <!-- =====================================================
          PROFILE MODAL
-    ================================ -->
+    ====================================================== -->
 
     <div
         id="profileModal"
@@ -704,8 +1042,8 @@
 
         <div class="modal-box profile-box">
 
-
             <button
+                type="button"
                 class="modal-close"
                 onclick="closeProfile()"
             >
@@ -736,6 +1074,7 @@
             <div class="profile-details">
 
                 <div>
+
                     <span>
                         🏫 Institute
                     </span>
@@ -743,10 +1082,12 @@
                     <strong id="profileInstitute">
                         -
                     </strong>
+
                 </div>
 
 
                 <div>
+
                     <span>
                         📧 Email
                     </span>
@@ -754,10 +1095,12 @@
                     <strong id="profileEmail">
                         -
                     </strong>
+
                 </div>
 
 
                 <div>
+
                     <span>
                         🏆 Score
                     </span>
@@ -765,10 +1108,12 @@
                     <strong id="profileScore">
                         0
                     </strong>
+
                 </div>
 
 
                 <div>
+
                     <span>
                         ⚔️ Battles
                     </span>
@@ -776,12 +1121,14 @@
                     <strong id="profileBattles">
                         0
                     </strong>
+
                 </div>
 
             </div>
 
 
             <button
+                type="button"
                 class="secondary-btn full"
                 onclick="logoutStudent()"
             >
@@ -793,10 +1140,16 @@
     </div>
 
 
+    <!-- =====================================================
+         NORMAL CATEGORY BATTLE MODAL
+         
+         IMPORTANT:
+         This is ONLY for the normal category battles.
 
-    <!-- ===============================
-         QUIZ MODAL
-    ================================ -->
+         50 questions.
+         startBattle().
+         It is NOT used by the 100-question live competition.
+    ====================================================== -->
 
     <div
         id="battleModal"
@@ -805,8 +1158,8 @@
 
         <div class="modal-box battle-modal">
 
-
             <button
+                type="button"
                 class="modal-close"
                 onclick="closeBattle()"
             >
@@ -851,11 +1204,10 @@
                 class="question-text"
             ></h3>
 
-
-            <div
-                id="answers"
-                class="answers"
-            ></div>
+<div
+    id="answerOptions"
+    class="answers"
+></div>>
 
 
             <div
@@ -868,9 +1220,73 @@
     </div>
 
 
+    <!-- =====================================================
+         SCRIPT
+    ====================================================== -->
 
     <script src="script.js"></script>
 
+
+    <!-- =====================================================
+         NAVIGATION FALLBACK
+         
+         This does NOT control the live competition.
+
+         It only provides a fallback for old code that may
+         still call scrollToSection().
+    ====================================================== -->
+
+    <script>
+
+    function scrollToSection(sectionId) {
+
+        const target =
+            document.getElementById(sectionId);
+
+        if (!target) {
+
+            console.error(
+                "Navigation target not found:",
+                sectionId
+            );
+
+            return;
+
+        }
+
+        const header =
+            document.querySelector(".site-header");
+
+        const headerHeight =
+            header
+                ? header.offsetHeight
+                : 0;
+
+        const targetPosition =
+            target.getBoundingClientRect().top +
+            window.pageYOffset -
+            headerHeight -
+            10;
+
+        window.scrollTo({
+
+            top:
+                Math.max(
+                    0,
+                    targetPosition
+                ),
+
+            behavior:
+                "smooth"
+
+        });
+
+    }
+
+    window.scrollToSection =
+        scrollToSection;
+
+</script>
 </body>
 
 </html>
