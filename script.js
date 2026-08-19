@@ -2115,7 +2115,6 @@ const questionBank = {
     ]
 
 };
-
 /* =========================================================
    LIVE COMPETITION STATE
 ========================================================= */
@@ -2155,8 +2154,6 @@ let liveSecondsRemaining = 60;
 let liveAnswerLocked = false;
 
 let liveCompetitionFinished = false;
-
-
 /* =========================================================
    LOAD LIVE COMPETITION
 ========================================================= */
@@ -2211,10 +2208,32 @@ async function loadLiveCompetition() {
     try {
 
         /*
-            Get the newest competition.
+            Get the newest CURRENT competition.
 
-            We DO NOT use live_competitions.current_question
-            to control individual students.
+            IMPORTANT FIX:
+
+            We DO NOT select the newest competition
+            regardless of status.
+
+            A previously finished competition may be
+            newer than the competition that is currently
+            waiting/live.
+
+            Therefore we ONLY search competitions that
+            can currently be active.
+
+            Allowed statuses:
+
+                waiting
+                scheduled
+                pending
+                live
+                active
+                running
+                started
+
+            Finished/completed/ended competitions are
+            intentionally excluded.
         */
 
         const {
@@ -2227,6 +2246,18 @@ async function loadLiveCompetition() {
                 )
                 .select(
                     "*"
+                )
+                .in(
+                    "status",
+                    [
+                        "waiting",
+                        "scheduled",
+                        "pending",
+                        "live",
+                        "active",
+                        "running",
+                        "started"
+                    ]
                 )
                 .order(
                     "created_at",
@@ -2288,6 +2319,14 @@ async function loadLiveCompetition() {
 
             activeLiveCompetition =
                 null;
+
+            activeLiveParticipant =
+                null;
+
+            liveCurrentQuestion =
+                null;
+
+            clearLiveQuestionTimer();
 
 
             container.innerHTML = `
@@ -2352,15 +2391,15 @@ async function loadLiveCompetition() {
                 .toLowerCase();
 
 
-        /*
-            FINISHED
-        */
-
         if (
             status === "finished" ||
             status === "completed" ||
             status === "ended"
         ) {
+
+            activeLiveCompetition =
+                null;
+
 
             container.innerHTML = `
 
@@ -2369,11 +2408,11 @@ async function loadLiveCompetition() {
                 </div>
 
                 <h3>
-                    Competition finished
+                    No active competition
                 </h3>
 
                 <p>
-                    This competition has already finished.
+                    The previous competition has finished.
                 </p>
 
                 <div class="competition-placeholder">
@@ -2385,16 +2424,24 @@ async function loadLiveCompetition() {
                     <div>
 
                         <strong>
-                            Competition Complete
+                            No current competition
                         </strong>
 
                         <small>
-                            Results are available after completion.
+                            Please check again when a new competition starts.
                         </small>
 
                     </div>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="primary-btn full"
+                    onclick="loadLiveCompetition()"
+                >
+                    CHECK AGAIN
+                </button>
 
             `;
 
@@ -2402,10 +2449,6 @@ async function loadLiveCompetition() {
 
         }
 
-
-        /*
-            WAITING
-        */
 
         if (
             status === "waiting" ||
@@ -2419,10 +2462,6 @@ async function loadLiveCompetition() {
 
         }
 
-
-        /*
-            ACTIVE / LIVE / RUNNING
-        */
 
         if (
             status === "live" ||
@@ -2439,10 +2478,6 @@ async function loadLiveCompetition() {
 
         }
 
-
-        /*
-            UNKNOWN STATUS
-        */
 
         container.innerHTML = `
 
@@ -2594,10 +2629,6 @@ async function renderWaitingLiveCompetition() {
 
     }
 
-
-    /*
-        Check whether this student has already joined.
-    */
 
     const {
         data: participant,
@@ -2807,10 +2838,6 @@ async function prepareLiveCompetition() {
     }
 
 
-    /*
-        Find THIS student's participant record.
-    */
-
     const {
         data: participant,
         error
@@ -2930,10 +2957,6 @@ async function prepareLiveCompetition() {
         participant;
 
 
-    /*
-        If this student already completed the competition.
-    */
-
     if (
         participant.completed === true
     ) {
@@ -2945,29 +2968,11 @@ async function prepareLiveCompetition() {
     }
 
 
-    /*
-        VERY IMPORTANT:
-
-        We use THIS PARTICIPANT'S current_question.
-
-        We do NOT use:
-
-        activeLiveCompetition.current_question
-    */
-
     liveQuestionNumber =
         Number(
             participant.current_question || 1
         );
 
-
-    /*
-        If question_started_at is missing,
-        create it now.
-
-        This makes the timer persistent
-        for this student's current question.
-    */
 
     if (
         !participant.question_started_at
@@ -3065,10 +3070,6 @@ async function joinLiveCompetition() {
 
     try {
 
-        /*
-            Check if student already joined.
-        */
-
         const {
             data: existingParticipant,
             error: existingError
@@ -3130,32 +3131,12 @@ async function joinLiveCompetition() {
             }
 
 
-            /*
-                If the participant already exists,
-                DO NOT reset question_started_at.
-
-                This is important because the student
-                may already have used part of their
-                60 seconds.
-            */
-
             await showLiveQuestion();
 
             return;
 
         }
 
-
-        /*
-            Join with Question 1.
-
-            question_started_at is saved immediately.
-
-            This student's timer starts now.
-
-            Other students have their own
-            question_started_at values.
-        */
 
         const questionStartedAt =
             new Date().toISOString();
@@ -3176,14 +3157,6 @@ async function joinLiveCompetition() {
 
                     student_id:
                         currentStudent.id,
-
-                    /*
-                        Your database column is BIGINT.
-
-                        currentStudent.institute_id
-                        must therefore contain the
-                        institute table BIGINT id.
-                    */
 
                     institute_id:
                         currentStudent.institute_id ||
@@ -3275,6 +3248,10 @@ async function showLiveQuestion() {
 
     if (!activeLiveCompetition) {
 
+        console.error(
+            "No active live competition."
+        );
+
         return;
 
     }
@@ -3282,9 +3259,29 @@ async function showLiveQuestion() {
 
     if (!activeLiveParticipant) {
 
+        console.error(
+            "No active live participant."
+        );
+
         return;
 
     }
+
+
+    /*
+        DEBUG INFORMATION
+    */
+
+    console.log(
+        "Current live competition:",
+        activeLiveCompetition
+    );
+
+
+    console.log(
+        "Current participant:",
+        activeLiveParticipant
+    );
 
 
     /*
@@ -3313,8 +3310,38 @@ async function showLiveQuestion() {
         );
 
 
+    if (
+        !Number.isFinite(
+            liveQuestionNumber
+        ) ||
+        liveQuestionNumber < 1
+    ) {
+
+        liveQuestionNumber =
+            1;
+
+    }
+
+
+    console.log(
+        "Looking for live question:",
+        {
+            competition_id:
+                activeLiveCompetition.id,
+
+            question_number:
+                liveQuestionNumber
+        }
+    );
+
+
     /*
-        Get the question belonging to this question number.
+        =====================================================
+        LOAD QUESTION
+        =====================================================
+
+        The question MUST belong to the same competition
+        and the current question number.
     */
 
     const {
@@ -3339,6 +3366,10 @@ async function showLiveQuestion() {
             .maybeSingle();
 
 
+    /*
+        DATABASE ERROR
+    */
+
     if (error) {
 
         console.error(
@@ -3358,18 +3389,27 @@ async function showLiveQuestion() {
                 <div>
 
                     <strong>
-                        No results
+                        Could not load question
                     </strong>
 
                     <small>
                         ${escapeHTML(
-                            error.message
+                            error.message ||
+                            "Database error while loading the question."
                         )}
                     </small>
 
                 </div>
 
             </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="showLiveQuestion()"
+            >
+                TRY AGAIN
+            </button>
 
         `;
 
@@ -3378,12 +3418,82 @@ async function showLiveQuestion() {
     }
 
 
+    /*
+        QUESTION NOT FOUND
+    */
+
     if (!question) {
 
         console.error(
             "No live question found:",
             liveQuestionNumber
         );
+
+
+        /*
+            =================================================
+            DEBUG: LOAD ALL QUESTIONS FOR THIS COMPETITION
+            =================================================
+
+            This tells us whether:
+
+            - the competition has no questions
+            - question numbers are different
+            - the competition_id is wrong
+        */
+
+        const {
+            data: availableQuestions,
+            error: availableQuestionsError
+        } =
+            await supabaseClient
+                .from(
+                    "live_competition_questions"
+                )
+                .select(
+                    "id, competition_id, question_number, subject"
+                )
+                .eq(
+                    "competition_id",
+                    activeLiveCompetition.id
+                )
+                .order(
+                    "question_number",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (
+            availableQuestionsError
+        ) {
+
+            console.error(
+                "Could not inspect available live questions:",
+                availableQuestionsError
+            );
+
+        } else {
+
+            console.log(
+                "Available questions for this competition:",
+                availableQuestions
+            );
+
+
+            console.log(
+                "Available question numbers:",
+                (
+                    availableQuestions ||
+                    []
+                ).map(
+                    questionRow =>
+                        questionRow.question_number
+                )
+            );
+
+        }
 
 
         container.innerHTML = `
@@ -3401,19 +3511,81 @@ async function showLiveQuestion() {
                     </strong>
 
                     <small>
-                        Question ${liveQuestionNumber}
-                        could not be found.
+                        Question
+                        ${liveQuestionNumber}
+                        has not been added to this competition yet.
                     </small>
 
                 </div>
 
             </div>
 
+            <div
+                style="
+                    margin-top:15px;
+                    padding:12px;
+                    border-radius:10px;
+                    background:rgba(255,255,255,0.05);
+                    font-size:13px;
+                    line-height:1.6;
+                "
+            >
+
+                <strong>
+                    Competition:
+                </strong>
+
+                ${escapeHTML(
+                    activeLiveCompetition.title ||
+                    "Student Battle"
+                )}
+
+                <br>
+
+                <strong>
+                    Competition ID:
+                </strong>
+
+                ${escapeHTML(
+                    activeLiveCompetition.id
+                )}
+
+                <br>
+
+                <strong>
+                    Requested question:
+                </strong>
+
+                ${liveQuestionNumber}
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn full"
+                onclick="showLiveQuestion()"
+                style="margin-top:15px;"
+            >
+                CHECK AGAIN
+            </button>
+
         `;
 
         return;
 
     }
+
+
+    /*
+        =====================================================
+        QUESTION FOUND
+        =====================================================
+    */
+
+    console.log(
+        "Live question successfully loaded:",
+        question
+    );
 
 
     liveCurrentQuestion =
@@ -3437,27 +3609,8 @@ async function showLiveQuestion() {
 
     /*
         =====================================================
-        IMPORTANT TIMER CALCULATION
+        TIMER
         =====================================================
-
-        We DO NOT simply start at 60.
-
-        Instead:
-
-        question_started_at
-            =
-        the exact time THIS student started
-        THIS question.
-
-        Therefore if the student refreshes
-        after 20 seconds:
-
-            60 - 20 = 40 seconds
-
-        remain.
-
-        This makes the timer independent
-        and persistent.
     */
 
     let remainingSeconds =
@@ -3497,9 +3650,6 @@ async function showLiveQuestion() {
 
         /*
             Safety fallback.
-
-            Normally this is already created
-            during join or prepare.
         */
 
         const questionStartedAt =
@@ -3553,9 +3703,8 @@ async function showLiveQuestion() {
 
 
     /*
-        If this question has already expired
-        while the student was away from the page,
-        automatically submit timeout.
+        If question expired while
+        the student was away.
     */
 
     if (
@@ -3568,6 +3717,7 @@ async function showLiveQuestion() {
         liveAnswerLocked =
             true;
 
+
         await submitLiveAnswer(
             -1,
             true
@@ -3579,10 +3729,9 @@ async function showLiveQuestion() {
 
 
     /*
-        Render the question.
-
-        Only ONE question is shown.
-        No question palette.
+        =====================================================
+        RENDER QUESTION
+        =====================================================
     */
 
     container.innerHTML = `
@@ -3605,17 +3754,22 @@ async function showLiveQuestion() {
             <div>
 
                 <h3 style="margin:0;">
+
                     ${escapeHTML(
                         activeLiveCompetition.title ||
                         "Student Battle KHP"
                     )}
+
                 </h3>
 
+
                 <small>
+
                     ${escapeHTML(
                         question.subject ||
                         "Mixed Subject"
                     )}
+
                 </small>
 
             </div>
@@ -3631,17 +3785,23 @@ async function showLiveQuestion() {
                 <strong
                     id="liveQuestionNumber"
                 >
+
                     ${liveQuestionNumber}
                     /
                     ${totalQuestions}
+
                 </strong>
 
+
                 <br>
+
 
                 <span
                     id="liveTimer"
                 >
+
                     ${remainingSeconds}s
+
                 </span>
 
             </div>
@@ -3679,10 +3839,12 @@ async function showLiveQuestion() {
             class="question-text"
             id="liveQuestionText"
         >
+
             ${escapeHTML(
                 question.question ||
                 ""
             )}
+
         </h3>
 
 
@@ -3722,6 +3884,7 @@ async function showLiveQuestion() {
                 text-align:center;
             "
         >
+
             Score:
             ${Number(
                 activeLiveParticipant.score ||
@@ -3734,9 +3897,7 @@ async function showLiveQuestion() {
 
 
     /*
-        Start THIS student's timer
-        with the remaining time calculated
-        from question_started_at.
+        Start THIS student's timer.
     */
 
     startLiveQuestionTimer(
@@ -3744,7 +3905,6 @@ async function showLiveQuestion() {
     );
 
 }
-
 
 /* =========================================================
    CREATE LIVE ANSWER BUTTON
@@ -3814,11 +3974,6 @@ function startLiveQuestionTimer(
     updateLiveTimerDisplay();
 
 
-    /*
-        If there is no time remaining,
-        immediately submit timeout.
-    */
-
     if (
         liveSecondsRemaining <= 0
     ) {
@@ -3860,14 +4015,6 @@ function startLiveQuestionTimer(
 
                     clearLiveQuestionTimer();
 
-
-                    /*
-                        Time expired.
-
-                        We automatically submit
-                        no answer and move THIS
-                        participant to the next question.
-                    */
 
                     if (
                         !liveAnswerLocked
@@ -4016,28 +4163,6 @@ async function submitLiveAnswer(
     );
 
 
-    /*
-        Convert database correct_answer
-        into an option index.
-
-        Supports:
-
-        A
-        B
-        C
-        D
-
-        0
-        1
-        2
-        3
-
-        1
-        2
-        3
-        4
-    */
-
     const correctIndex =
         getLiveCorrectAnswerIndex(
             liveCurrentQuestion.correct_answer
@@ -4053,13 +4178,6 @@ async function submitLiveAnswer(
             correctIndex
         );
 
-
-    /*
-        Highlight answer.
-
-        If timed out, show the correct answer
-        but there is no selected answer.
-    */
 
     buttons.forEach(
         function (
@@ -4096,23 +4214,6 @@ async function submitLiveAnswer(
         }
     );
 
-
-    /*
-        Save answer to live_answers.
-
-        Notice:
-
-        student_id =
-        THIS student.
-
-        question_number =
-        THIS student's current question.
-
-        Therefore students do not affect
-        one another's position.
-
-        timed out answer is stored as -1.
-    */
 
     const {
         error: answerError
@@ -4163,11 +4264,6 @@ async function submitLiveAnswer(
             false;
 
 
-        /*
-            Restart the timer with the remaining
-            time calculated from the database.
-        */
-
         if (
             activeLiveParticipant.question_started_at
         ) {
@@ -4213,10 +4309,6 @@ async function submitLiveAnswer(
     }
 
 
-    /*
-        Update THIS student's score.
-    */
-
     const newScore =
         Number(
             activeLiveParticipant.score ||
@@ -4229,10 +4321,6 @@ async function submitLiveAnswer(
         );
 
 
-    /*
-        Determine next question.
-    */
-
     const totalQuestions =
         Number(
             activeLiveCompetition.total_questions ||
@@ -4244,10 +4332,6 @@ async function submitLiveAnswer(
         liveQuestionNumber +
         1;
 
-
-    /*
-        FINAL QUESTION
-    */
 
     if (
         nextQuestion >
@@ -4314,26 +4398,6 @@ async function submitLiveAnswer(
     }
 
 
-    /*
-        MOVE ONLY THIS PARTICIPANT.
-
-        We update:
-
-        live_participants.current_question
-
-        AND:
-
-        live_participants.question_started_at
-
-        for THIS participant's row only.
-
-        The new question gets a fresh
-        60-second timer.
-
-        Other students remain exactly
-        where they currently are.
-    */
-
     const nextQuestionStartedAt =
         new Date().toISOString();
 
@@ -4397,11 +4461,6 @@ async function submitLiveAnswer(
         null;
 
 
-    /*
-        Small delay so the user can see
-        the correct/incorrect result.
-    */
-
     setTimeout(
         async function () {
 
@@ -4440,10 +4499,6 @@ function getLiveCorrectAnswerIndex(
             .toUpperCase();
 
 
-    /*
-        A / B / C / D
-    */
-
     if (
         [
             "A",
@@ -4462,21 +4517,6 @@ function getLiveCorrectAnswerIndex(
     }
 
 
-    /*
-        Numeric answer.
-
-        IMPORTANT:
-
-        This assumes numeric answers
-        0-3 are indexes and 1-4 are
-        answer numbers.
-
-        If your database uses ONLY 1-4,
-        we should standardize that column
-        to avoid ambiguity with the value 1,
-        2, or 3.
-    */
-
     const numeric =
         Number(
             normalized
@@ -4489,10 +4529,6 @@ function getLiveCorrectAnswerIndex(
         )
     ) {
 
-        /*
-            0 - 3
-        */
-
         if (
             numeric >= 0 &&
             numeric <= 3
@@ -4502,10 +4538,6 @@ function getLiveCorrectAnswerIndex(
 
         }
 
-
-        /*
-            1 - 4
-        */
 
         if (
             numeric >= 1 &&
@@ -4518,13 +4550,6 @@ function getLiveCorrectAnswerIndex(
 
     }
 
-
-    /*
-        Sometimes correct_answer may contain
-        the actual option text.
-
-        Compare it against the four options.
-    */
 
     if (
         liveCurrentQuestion
@@ -4763,11 +4788,6 @@ if (
                 questionBank[category];
 
 
-            /*
-                Some question banks may store
-                questions inside .questions
-            */
-
             if (
                 questions &&
                 !Array.isArray(questions) &&
@@ -4841,6 +4861,7 @@ if (
 
 }
 
+
 /* =========================================================
    AUTH / PAGE INITIALIZATION
 ========================================================= */
@@ -4907,6 +4928,8 @@ document.addEventListener(
 
     }
 );
+
+
 /* =========================================================
    LOAD LEADERBOARD
    SHOW ONLY THE LATEST COMPLETED LIVE COMPETITION
@@ -4948,10 +4971,6 @@ async function loadLeaderboard() {
 
     try {
 
-        /* =====================================================
-           FIND LATEST FINISHED LIVE COMPETITION
-        ===================================================== */
-
         const {
             data: latestCompetition,
             error: competitionError
@@ -4989,10 +5008,6 @@ async function loadLeaderboard() {
         }
 
 
-        /* =====================================================
-           NO FINISHED COMPETITION
-        ===================================================== */
-
         if (
             !latestCompetition
         ) {
@@ -5013,11 +5028,6 @@ async function loadLeaderboard() {
             latestCompetition
         );
 
-
-        /* =====================================================
-           LOAD COMPLETED PARTICIPANTS
-           ONLY FROM THIS COMPETITION
-        ===================================================== */
 
         const {
             data: participants,
@@ -5062,10 +5072,6 @@ async function loadLeaderboard() {
         }
 
 
-        /* =====================================================
-           NO COMPLETED RESULTS
-        ===================================================== */
-
         if (
             !participants ||
             !participants.length
@@ -5082,17 +5088,9 @@ async function loadLeaderboard() {
         }
 
 
-        /* =====================================================
-           SHOW LEADERBOARD
-        ===================================================== */
-
         leaderboardSection.hidden =
             false;
 
-
-        /* =====================================================
-           UPDATE DESCRIPTION
-        ===================================================== */
 
         const description =
             leaderboardSection.querySelector(
@@ -5109,10 +5107,6 @@ async function loadLeaderboard() {
 
         }
 
-
-        /* =====================================================
-           CREATE LEADERBOARD
-        ===================================================== */
 
         leaderboard.innerHTML =
             participants
@@ -5191,20 +5185,10 @@ async function loadLeaderboard() {
 
 }
 
+
 /* =========================================================
    SAFE HTML ESCAPE HELPER
 ========================================================= */
-
-/*
-    IMPORTANT:
-
-    Some parts of the website use escapeHTML().
-
-    If another part of script.js already defines it,
-    we DO NOT create another copy.
-
-    If it does not exist, this creates it safely.
-*/
 
 if (
     typeof window.escapeHTML !==
@@ -5259,20 +5243,6 @@ if (
    RESTORE CURRENT STUDENT
 ========================================================= */
 
-/*
-    IMPORTANT:
-
-    Supabase can remember that the user is logged in
-    even when the JavaScript variable currentStudent
-    has not been restored yet.
-
-    This function checks the current Supabase session
-    and loads the student's profile.
-
-    This helps the LIVE COMPETITION recognize that
-    the student is already logged in.
-*/
-
 async function restoreCurrentStudent() {
 
     if (
@@ -5325,19 +5295,10 @@ async function restoreCurrentStudent() {
         }
 
 
-        /*
-            Load the student's profile.
-        */
-
         await loadCurrentStudent(
             session.user
         );
 
-
-        /*
-            Update the navigation area
-            after restoring the student.
-        */
 
         updateUserArea();
 
@@ -5548,11 +5509,6 @@ function setupRegistration() {
                 );
 
 
-                /*
-                    Refresh live competition after
-                    successful registration.
-                */
-
                 if (
                     typeof refreshLiveCompetitionAfterLogin ===
                     "function"
@@ -5719,14 +5675,6 @@ function setupLogin() {
 
             updateUserArea();
 
-
-            /*
-                Refresh live competition after login.
-
-                This is important because the user may
-                immediately open the live competition
-                after logging in.
-            */
 
             if (
                 typeof refreshLiveCompetitionAfterLogin ===
@@ -6269,11 +6217,6 @@ function getNormalQuestionOptions(
     }
 
 
-    /* =====================================================
-       FORMAT 1:
-       options: ["A", "B", "C", "D"]
-    ===================================================== */
-
     if (
         Array.isArray(
             question.options
@@ -6294,11 +6237,6 @@ function getNormalQuestionOptions(
 
     }
 
-
-    /* =====================================================
-       FORMAT 2:
-       options stored as JSON string
-    ===================================================== */
 
     if (
         typeof question.options ===
@@ -6339,17 +6277,8 @@ function getNormalQuestionOptions(
 
             } catch (error) {
 
-                /*
-                    Continue below.
-                */
-
             }
 
-
-            /* =============================================
-               FORMAT 3:
-               Option A|Option B|Option C|Option D
-            ============================================= */
 
             if (
                 raw.includes("|")
@@ -6368,11 +6297,6 @@ function getNormalQuestionOptions(
 
             }
 
-
-            /* =============================================
-               FORMAT 4:
-               Option A,Option B,Option C,Option D
-            ============================================= */
 
             if (
                 raw.includes(",")
@@ -6396,11 +6320,6 @@ function getNormalQuestionOptions(
     }
 
 
-    /* =====================================================
-       FORMAT 5:
-       choices
-    ===================================================== */
-
     if (
         Array.isArray(
             question.choices
@@ -6422,11 +6341,6 @@ function getNormalQuestionOptions(
     }
 
 
-    /* =====================================================
-       FORMAT 6:
-       answers
-    ===================================================== */
-
     if (
         Array.isArray(
             question.answers
@@ -6447,11 +6361,6 @@ function getNormalQuestionOptions(
 
     }
 
-
-    /* =====================================================
-       FORMAT 7:
-       option_a / option_b / option_c / option_d
-    ===================================================== */
 
     const options = [
 
@@ -6487,11 +6396,6 @@ function getNormalQuestionOptions(
     }
 
 
-    /* =====================================================
-       FORMAT 8:
-       optionA / optionB / optionC / optionD
-    ===================================================== */
-
     const camelOptions = [
 
         question.optionA,
@@ -6525,11 +6429,6 @@ function getNormalQuestionOptions(
 
     }
 
-
-    /* =====================================================
-       FORMAT 9:
-       a / b / c / d
-    ===================================================== */
 
     const letterOptions = [
 
@@ -6741,7 +6640,7 @@ function getNormalCorrectAnswer(
 }
 
 
- /* =========================================================
+/* =========================================================
    START NORMAL BATTLE
 ========================================================= */
 
@@ -7000,10 +6899,6 @@ function showQuestion() {
         );
 
 
-    /* =====================================================
-       QUESTION TEXT
-    ===================================================== */
-
     const text =
         question.q ||
         question.question ||
@@ -7022,10 +6917,6 @@ function showQuestion() {
     }
 
 
-    /* =====================================================
-       QUESTION NUMBER
-    ===================================================== */
-
     if (
         questionNumber
     ) {
@@ -7036,10 +6927,6 @@ function showQuestion() {
     }
 
 
-    /* =====================================================
-       SCORE
-    ===================================================== */
-
     if (
         scoreElement
     ) {
@@ -7049,10 +6936,6 @@ function showQuestion() {
 
     }
 
-
-    /* =====================================================
-       GET OPTIONS USING HELPER
-    ===================================================== */
 
     const options =
         getNormalQuestionOptions(
@@ -7084,10 +6967,6 @@ function showQuestion() {
 
     }
 
-
-    /* =====================================================
-       NO OPTIONS FOUND
-    ===================================================== */
 
     if (
         !options.length
@@ -7127,10 +7006,6 @@ function showQuestion() {
 
     }
 
-
-    /* =====================================================
-       CREATE OPTIONS
-    ===================================================== */
 
     optionsContainer.innerHTML =
         options
@@ -7299,8 +7174,6 @@ function selectAnswer(
     );
 
 }
-
-
 /* =========================================================
    FINISH NORMAL BATTLE
 ========================================================= */
@@ -7550,8 +7423,17 @@ async function checkLiveCompetitionStatus() {
                 .select(
                     "id, title, status, total_questions, current_question, scheduled_start, started_at, finished_at, created_at"
                 )
-                .or(
-                    "status.eq.waiting,status.eq.scheduled,status.eq.pending,status.eq.live,status.eq.active,status.eq.running,status.eq.started"
+                .in(
+                    "status",
+                    [
+                        "waiting",
+                        "scheduled",
+                        "pending",
+                        "live",
+                        "active",
+                        "running",
+                        "started"
+                    ]
                 )
                 .order(
                     "scheduled_start",
@@ -7582,6 +7464,11 @@ async function checkLiveCompetitionStatus() {
 
         /*
             No waiting/live competition.
+
+            IMPORTANT:
+
+            Finished competitions are intentionally
+            excluded from this query.
         */
 
         if (
