@@ -2512,3 +2512,725 @@ main{
     transition-duration:.01ms!important;
   }
 }
+
+/* =========================================================
+   FINAL MOBILE FIX
+   Optimized for real phones such as 320px, 360px, 390px and 430px.
+   This section intentionally comes LAST so it overrides older
+   mobile rules above it.
+========================================================= */
+
+@media (max-width: 700px){
+
+  html,
+  body{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+
+  body{
+    font-size:14px;
+  }
+
+  /* HEADER
+     Keep the navigation readable instead of shrinking it to tiny text. */
+  .site-header{
+    min-height:64px;
+    width:100%;
+    padding:9px 12px;
+    gap:8px;
+    display:flex;
+    align-items:center;
+  }
+
+  .brand{
+    min-width:0;
+    max-width:none;
+    flex:1 1 auto;
+    gap:8px;
+  }
+
+  .brand-mark{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    border-radius:10px;
+    font-size:18px;
+  }
+
+  .brand-title{
+    min-width:0;
+    max-width:100%;
+    font-size:12px;
+    line-height:1.1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .brand-subtitle{
+    display:block;
+    max-width:100%;
+    font-size:8px;
+    line-height:1.1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .nav{
+    flex:0 0 auto;
+    min-width:0;
+    max-width:60%;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:3px;
+  }
+
+  .nav>button:not(.nav-cta){
+    min-height:34px;
+    padding:6px 6px;
+    border-radius:7px;
+    font-size:9px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+
+  .nav>button:not(.nav-cta)::after{
+    left:6px;
+    right:6px;
+    bottom:2px;
+  }
+
+  #userArea{
+    margin-left:1px;
+    flex:0 0 auto;
+  }
+
+  .nav-cta{
+    min-height:34px;
+    padding:7px 9px;
+    border-radius:8px;
+    font-size:9px;
+    white-space:nowrap;
+  }
+
+  /* HERO */
+  .hero{
+    width:calc(100% - 28px);
+    max-width:620px;
+    min-height:auto;
+    margin:0 auto;
+    padding:52px 0 46px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:34px;
+  }
+
+  .hero::before{
+    width:320px;
+    height:320px;
+    left:-170px;
+    top:0;
+  }
+
+  .hero-copy{
+    width:100%;
+    min-width:0;
+  }
+
+  .eyebrow{
+    max-width:100%;
+    font-size:9px;
+    letter-spacing:1.4px;
+  }
+
+  .hero h1{
+    max-width:100%;
+    margin:14px 0 17px;
+    font-size:clamp(38px,11vw,54px);
+    line-height:1.02;
+    letter-spacing:-1.8px;
+    overflow-wrap:anywhere;
+  }
+
+  .hero-copy>p{
+    max-width:100%;
+    font-size:13px;
+    line-height:1.65;
+  }
+
+  .hero-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:9px;
+    margin-top:23px;
+  }
+
+  .hero-actions .primary-btn,
+  .hero-actions .secondary-btn{
+    width:100%;
+    min-height:46px;
+  }
+
+  .hero-stats{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-top:28px;
+  }
+
+  .hero-stats>div{
+    min-width:0;
+    margin:0;
+    padding:0 8px 0 0;
+    border-right:1px solid var(--border);
+  }
+
+  .hero-stats>div:last-child{
+    border-right:0;
+    padding-right:0;
+  }
+
+  .hero-stats strong{
+    font-size:19px;
+  }
+
+  .hero-stats span{
+    font-size:8px;
+    line-height:1.35;
+    letter-spacing:.35px;
+  }
+
+  /* HERO CARD */
+  .hero-card{
+    width:100%;
+    max-width:100%;
+    margin:0;
+    padding:22px 17px;
+    border-radius:20px;
+  }
+
+  .battle-card-top{
+    gap:8px;
+  }
+
+  .battle-card-top span:first-child{
+    font-size:8.5px;
+    letter-spacing:1.1px;
+  }
+
+  .live-dot{
+    font-size:9px;
+  }
+
+  .hero-card h3{
+    margin:27px 0 6px;
+    font-size:23px;
+    line-height:1.15;
+  }
+
+  .hero-card>p{
+    font-size:11.5px;
+    line-height:1.5;
+  }
+
+  .versus{
+    width:100%;
+    gap:7px;
+    margin:24px 0;
+  }
+
+  .avatar{
+    width:54px;
+    height:54px;
+    border-radius:14px;
+    font-size:20px;
+  }
+
+  .player{
+    min-width:0;
+  }
+
+  .player strong{
+    display:block;
+    max-width:100%;
+    font-size:11px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .player small{
+    font-size:7.5px;
+  }
+
+  .vs{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    font-size:8.5px;
+  }
+
+  /* SECTIONS */
+  .section{
+    width:calc(100% - 28px);
+    max-width:620px;
+    padding:56px 0;
+  }
+
+  .section-heading{
+    width:100%;
+    margin-bottom:23px;
+  }
+
+  .section-heading h2{
+    max-width:100%;
+    font-size:32px;
+    line-height:1.05;
+    letter-spacing:-1px;
+  }
+
+  .section-heading p{
+    max-width:100%;
+    font-size:12.5px;
+    line-height:1.65;
+  }
+
+  .institute-grid,
+  .category-grid{
+    width:100%;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .institute-card{
+    min-height:0;
+    padding:20px;
+  }
+
+  .institute-card h3{
+    margin-top:30px;
+    font-size:18px;
+    line-height:1.25;
+  }
+
+  .institute-card p{
+    font-size:12px;
+  }
+
+  .institute-card>span{
+    font-size:10px;
+  }
+
+  .category-card{
+    min-height:140px;
+    padding:19px;
+  }
+
+  /* FOOTER */
+  .site-footer{
+    margin-top:16px;
+    padding:44px 14px 26px;
+  }
+
+  .footer-brand{
+    font-size:18px;
+  }
+
+  .footer-tagline{
+    font-size:10.5px;
+  }
+
+  .footer-copyright{
+    font-size:9.5px;
+  }
+
+  /* MODALS */
+  .modal-overlay{
+    padding:9px;
+  }
+
+  .modal-box,
+  .auth-box,
+  .profile-box,
+  .battle-modal{
+    width:100%;
+    max-width:100%;
+  }
+
+  .modal-box{
+    max-height:94vh;
+    padding:25px 17px;
+    border-radius:19px;
+  }
+
+  .auth-box{
+    padding:23px 16px 19px;
+  }
+
+  .modal-close{
+    width:34px;
+    height:34px;
+    top:10px;
+    right:10px;
+    font-size:20px;
+  }
+
+  .modal-icon{
+    width:50px;
+    height:50px;
+    margin-bottom:15px;
+    border-radius:14px;
+    font-size:21px;
+  }
+
+  .modal-box h2{
+    font-size:25px;
+    line-height:1.12;
+  }
+
+  .modal-subtitle{
+    font-size:11.5px;
+    line-height:1.6;
+  }
+
+  #registrationForm,
+  #loginForm{
+    margin-top:18px;
+  }
+
+  .form-group{
+    margin:12px 0;
+  }
+
+  .form-group label{
+    font-size:11px;
+  }
+
+  .form-group input,
+  .form-group select{
+    min-height:44px;
+    padding:10px 11px;
+    font-size:12px;
+  }
+
+  /* PROFILE */
+  .profile-details{
+    margin:20px 0 16px;
+  }
+
+  .profile-details>div{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+    min-height:auto;
+    padding:11px 12px;
+  }
+
+  .profile-details span{
+    font-size:10.5px;
+  }
+
+  .profile-details strong{
+    max-width:100%;
+    text-align:left;
+    font-size:12px;
+  }
+
+  /* QUIZ */
+  .battle-top{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:9px;
+    padding-right:29px;
+  }
+
+  .battle-top h2{
+    font-size:24px;
+  }
+
+  .battle-top>strong{
+    padding:6px 9px;
+    font-size:9px;
+  }
+
+  .progress-track{
+    height:6px;
+    margin:20px 0 25px;
+  }
+
+  .question-text{
+    font-size:16px;
+    line-height:1.5;
+  }
+
+  .answers{
+    gap:8px;
+    margin-top:18px;
+  }
+
+  .answer{
+    min-height:48px;
+    padding:11px;
+    border-radius:10px;
+    font-size:11.5px;
+    line-height:1.45;
+  }
+
+  .quiz-result{
+    font-size:10.5px;
+  }
+
+  /* LIVE STATUS */
+  .competition-placeholder{
+    align-items:flex-start;
+    gap:9px;
+    margin:20px 0 16px;
+    padding:12px;
+  }
+
+  .placeholder-icon{
+    width:37px;
+    height:37px;
+    flex:0 0 37px;
+    border-radius:10px;
+  }
+
+  .competition-placeholder strong{
+    font-size:11.5px;
+  }
+
+  .competition-placeholder small{
+    font-size:9.5px;
+  }
+
+  /* LEADERBOARD */
+  .leaderboard-list{
+    width:100%;
+  }
+
+  .leaderboard-row{
+    grid-template-columns:34px minmax(0,1fr) 62px;
+    gap:7px;
+    min-height:62px;
+    padding:10px;
+  }
+
+  .leaderboard-rank{
+    font-size:11px;
+  }
+
+  .leaderboard-student{
+    min-width:0;
+  }
+
+  .leaderboard-student strong{
+    font-size:11px;
+  }
+
+  .leaderboard-student span{
+    font-size:8px;
+    overflow-wrap:anywhere;
+  }
+
+  .leaderboard-score strong{
+    font-size:15px;
+  }
+
+  .leaderboard-score span{
+    font-size:8px;
+  }
+
+  .leaderboard-battles{
+    display:none;
+  }
+}
+
+/* Phones around 360px to 430px */
+@media (min-width:361px) and (max-width:480px){
+
+  .site-header{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .brand{
+    flex-basis:42%;
+  }
+
+  .nav{
+    max-width:58%;
+  }
+
+  .nav>button:not(.nav-cta){
+    padding-left:5px;
+    padding-right:5px;
+    font-size:8.5px;
+  }
+
+  .nav-cta{
+    padding-left:8px;
+    padding-right:8px;
+    font-size:8.5px;
+  }
+}
+
+/* Small phones */
+@media (max-width:360px){
+
+  .site-header{
+    min-height:60px;
+    padding:8px 8px;
+    gap:5px;
+  }
+
+  .brand{
+    flex-basis:39%;
+    gap:6px;
+  }
+
+  .brand-mark{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+    font-size:16px;
+  }
+
+  .brand-title{
+    font-size:10px;
+  }
+
+  .brand-subtitle{
+    display:none;
+  }
+
+  .nav{
+    max-width:61%;
+    gap:1px;
+  }
+
+  .nav>button:not(.nav-cta){
+    min-height:31px;
+    padding:5px 4px;
+    font-size:7.5px;
+  }
+
+  .nav-cta{
+    min-height:31px;
+    padding:6px 7px;
+    font-size:7.5px;
+  }
+
+  .hero{
+    width:calc(100% - 24px);
+    padding-top:46px;
+    padding-bottom:40px;
+  }
+
+  .hero h1{
+    font-size:36px;
+    letter-spacing:-1.4px;
+  }
+
+  .hero-copy>p{
+    font-size:11.5px;
+  }
+
+  .hero-stats{
+    gap:7px;
+  }
+
+  .hero-stats strong{
+    font-size:17px;
+  }
+
+  .hero-stats span{
+    font-size:7px;
+  }
+
+  .hero-card{
+    padding:19px 14px;
+  }
+
+  .avatar{
+    width:50px;
+    height:50px;
+    font-size:18px;
+  }
+
+  .vs{
+    width:31px;
+    height:31px;
+    flex-basis:31px;
+  }
+
+  .section{
+    width:calc(100% - 24px);
+    padding:50px 0;
+  }
+
+  .section-heading h2{
+    font-size:29px;
+  }
+}
+
+/* Very small phones */
+@media (max-width:320px){
+
+  .site-header{
+    padding-left:6px;
+    padding-right:6px;
+  }
+
+  .brand{
+    flex-basis:35%;
+  }
+
+  .brand-mark{
+    width:31px;
+    height:31px;
+    flex-basis:31px;
+    font-size:14px;
+  }
+
+  .brand-title{
+    font-size:8.5px;
+  }
+
+  .nav{
+    max-width:65%;
+  }
+
+  .nav>button:not(.nav-cta){
+    padding:4px 2px;
+    font-size:6.8px;
+  }
+
+  .nav-cta{
+    padding:5px 5px;
+    font-size:6.8px;
+  }
+
+  .hero h1{
+    font-size:32px;
+  }
+
+  .hero-card{
+    padding:17px 11px;
+  }
+
+  .section-heading h2{
+    font-size:27px;
+  }
+
+  .modal-box{
+    padding-left:12px;
+    padding-right:12px;
+  }
+}
