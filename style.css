@@ -3443,3 +3443,62 @@ main{
     font-size:7px;
   }
 }
+
+
+/* =========================================================
+   FINAL FIXED MOBILE HEADER
+   This MUST be the last rule so nothing can override it.
+========================================================= */
+
+@media (max-width:700px){
+
+  .site-header{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    width:100% !important;
+    z-index:99999 !important;
+    margin:0 !important;
+  }
+
+  main{
+    padding-top:68px !important;
+  }
+
+  body{
+    padding-top:0 !important;
+  }
+}
+
+@media (max-width:420px){
+
+  .site-header{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    width:100% !important;
+    z-index:99999 !important;
+  }
+
+  main{
+    padding-top:60px !important;
+  }
+}
+
+@media (max-width:360px){
+
+  .site-header{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    width:100% !important;
+    z-index:99999 !important;
+  }
+
+  main{
+    padding-top:60px !important;
+  }
+}
