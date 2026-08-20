@@ -5118,7 +5118,6 @@ async function submitLiveAnswer(
     }
 }
 
-
 /* =========================================================
    SHOW COMPLETED SCREEN
 ========================================================= */
@@ -5135,10 +5134,15 @@ async function showLiveCompletedScreen() {
         return;
     }
 
-const score =
-    Number(
-        activeLiveParticipant?.score || 0
-    );
+
+    clearLiveQuestionTimer();
+
+
+    const score =
+        Number(
+            activeLiveParticipant?.score || 0
+        );
+
 
     const totalQuestions =
         Number(
@@ -5467,6 +5471,10 @@ async function loadLeaderboard() {
 
         if (!activeLiveCompetition) {
 
+            console.error(
+                "No active live competition."
+            );
+
             return;
         }
 
@@ -5511,7 +5519,7 @@ async function loadLeaderboard() {
 
 
         /* -----------------------------------------
-           LOAD PARTICIPANTS
+           LOAD EVERY PARTICIPANT
         ----------------------------------------- */
 
         const {
@@ -5544,7 +5552,7 @@ async function loadLeaderboard() {
         if (participantError) {
 
             console.error(
-                "Could not load live competition results:",
+                "Could not load live competition participants:",
                 participantError
             );
 
@@ -5567,8 +5575,14 @@ async function loadLeaderboard() {
         }
 
 
+        console.log(
+            "LEADERBOARD PARTICIPANTS:",
+            participants
+        );
+
+
         /* -----------------------------------------
-           LOAD STUDENT NAMES FROM PROFILES
+           GET ALL STUDENT IDS
         ----------------------------------------- */
 
         const studentIds =
@@ -5582,6 +5596,11 @@ async function loadLeaderboard() {
                         id
                 );
 
+
+        /* -----------------------------------------
+           LOAD ALL STUDENT NAMES
+           FROM PROFILES
+        ----------------------------------------- */
 
         const {
             data: profiles,
@@ -5661,6 +5680,19 @@ async function loadLeaderboard() {
                             "Student";
 
 
+                        const studentScore =
+                            Number(
+                                participant.score || 0
+                            );
+
+
+                        const totalQuestions =
+                            Number(
+                                latestCompetition.total_questions ||
+                                100
+                            );
+
+
                         return `
 
                             <div class="leaderboard-row">
@@ -5669,24 +5701,22 @@ async function loadLeaderboard() {
                                     ${index + 1}
                                 </div>
 
-                                <div class="leaderboard-player">
 
-    <strong>
-        ${escapeHTML(
-            studentName
-        )}
-    </strong>
+                                <div class="leaderboard-student">
 
-</div>
+                                    <strong>
+                                        ${escapeHTML(
+                                            studentName
+                                        )}
+                                    </strong>
+
+                                </div>
+
 
                                 <div class="leaderboard-score">
 
                                     <strong>
-                                        ${Number(
-                                            participant.score || 0
-                                        )}/${Number(
-                                            latestCompetition.total_questions || 100
-                                        )}
+                                        ${studentScore}/${totalQuestions}
                                     </strong>
 
                                 </div>
