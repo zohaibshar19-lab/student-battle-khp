@@ -5137,32 +5137,10 @@ async function showLiveCompletedScreen() {
         return;
     }
 
-
-    clearLiveQuestionTimer();
-
-
-    let score =
-        0;
-
-
-    try {
-
-        score =
-            await calculateLiveScoreFromAnswers();
-
-    } catch(error) {
-
-        console.error(
-            "Could not calculate final score:",
-            error
-        );
-
-        score =
-            Number(
-                activeLiveParticipant?.score || 0
-            );
-    }
-
+const score =
+    Number(
+        activeLiveParticipant?.score || 0
+    );
 
     const totalQuestions =
         Number(
