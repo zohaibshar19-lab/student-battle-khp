@@ -3405,9 +3405,7 @@ async function prepareLiveCompetition() {
                     </div>
 
                     <div>
-                        <strong>
-                            Competition is LIVE
-                        </strong>
+                       
 
                         <small>
                             Join now to start answering questions.
@@ -5463,6 +5461,16 @@ async function loadLeaderboard() {
 
     try {
 
+        /* -----------------------------------------
+           LOAD CURRENT COMPETITION
+        ----------------------------------------- */
+
+        if (!activeLiveCompetition) {
+
+            return;
+        }
+
+
         const {
             data: latestCompetition,
             error: competitionError
@@ -5472,16 +5480,17 @@ async function loadLeaderboard() {
                 .select(
                     "id, title, status, total_questions, finished_at, created_at"
                 )
-               .eq(
-    "id",
-    activeLiveCompetition.id
-)
-.maybeSingle();
+                .eq(
+                    "id",
+                    activeLiveCompetition.id
+                )
+                .maybeSingle();
+
 
         if (competitionError) {
 
             console.error(
-                "Could not find latest finished competition:",
+                "Could not load competition:",
                 competitionError
             );
 
@@ -5501,6 +5510,10 @@ async function loadLeaderboard() {
         }
 
 
+        /* -----------------------------------------
+           LOAD PARTICIPANTS
+        ----------------------------------------- */
+
         const {
             data: participants,
             error: participantError
@@ -5513,10 +5526,6 @@ async function loadLeaderboard() {
                 .eq(
                     "competition_id",
                     latestCompetition.id
-                )
-                .eq(
-                    "completed",
-                    true
                 )
                 .order(
                     "score",
@@ -5558,6 +5567,68 @@ async function loadLeaderboard() {
         }
 
 
+        /* -----------------------------------------
+           LOAD STUDENT NAMES FROM PROFILES
+        ----------------------------------------- */
+
+        const studentIds =
+            participants
+                .map(
+                    participant =>
+                        participant.student_id
+                )
+                .filter(
+                    id =>
+                        id
+                );
+
+
+        const {
+            data: profiles,
+            error: profilesError
+        } =
+            await client
+                .from("profiles")
+                .select(
+                    "id, full_name, name"
+                )
+                .in(
+                    "id",
+                    studentIds
+                );
+
+
+        if (profilesError) {
+
+            console.error(
+                "Could not load student profiles:",
+                profilesError
+            );
+
+            return;
+        }
+
+
+        const profileMap =
+            new Map(
+                (profiles || []).map(
+                    profile => [
+
+                        profile.id,
+
+                        profile.full_name ||
+                        profile.name ||
+                        "Student"
+
+                    ]
+                )
+            );
+
+
+        /* -----------------------------------------
+           SHOW LEADERBOARD
+        ----------------------------------------- */
+
         leaderboardSection.hidden =
             false;
 
@@ -5583,9 +5654,16 @@ async function loadLeaderboard() {
                         index
                     ) {
 
+                        const studentName =
+                            profileMap.get(
+                                participant.student_id
+                            ) ||
+                            "Student";
+
+
                         return `
 
-                            <div class="leaderboard-item">
+                            <div class="leaderboard-row">
 
                                 <div class="leaderboard-rank">
                                     ${index + 1}
@@ -5593,15 +5671,13 @@ async function loadLeaderboard() {
 
                                 <div class="leaderboard-player">
 
-                                    <strong>
-                                        Student
-                                    </strong>
+    <strong>
+        ${escapeHTML(
+            studentName
+        )}
+    </strong>
 
-                                    <small>
-                                        Live Competition
-                                    </small>
-
-                                </div>
+</div>
 
                                 <div class="leaderboard-score">
 
@@ -5609,7 +5685,7 @@ async function loadLeaderboard() {
                                         ${Number(
                                             participant.score || 0
                                         )}/${Number(
-                                            latestCompetition.total_questions || 0
+                                            latestCompetition.total_questions || 100
                                         )}
                                     </strong>
 
@@ -5631,8 +5707,6 @@ async function loadLeaderboard() {
         );
     }
 }
-
-
 /* =========================================================
    REGISTRATION
 ========================================================= */
