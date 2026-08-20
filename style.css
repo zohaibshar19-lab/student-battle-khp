@@ -4453,3 +4453,125 @@ main{
   }
 
 }
+
+/* =========================================================
+   FINAL HORIZONTAL OVERFLOW LOCK
+   Prevents ANY element from making the mobile page move sideways
+========================================================= */
+
+@media (max-width: 700px){
+
+  html,
+  body{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    margin:0;
+    padding:0;
+    overflow-x:hidden !important;
+    overflow-y:auto;
+  }
+
+  *,
+  *::before,
+  *::after{
+    box-sizing:border-box;
+    max-width:100%;
+  }
+
+  img,
+  video,
+  iframe,
+  canvas,
+  svg{
+    max-width:100% !important;
+    height:auto;
+  }
+
+  input,
+  select,
+  textarea,
+  button{
+    max-width:100%;
+  }
+
+  main,
+  header,
+  footer,
+  section,
+  article,
+  div{
+    max-width:100%;
+  }
+
+  /* Stop common fixed-width elements */
+  .container,
+  .hero,
+  .hero-card,
+  .section,
+  .modal-box,
+  .auth-box,
+  .profile-box,
+  .battle-modal,
+  .competition-placeholder,
+  .leaderboard-list{
+    max-width:100%;
+  }
+
+  /* Prevent long text from creating overflow */
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  span,
+  strong,
+  small,
+  label{
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  /* Navigation must stay inside viewport */
+  .site-header{
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .brand{
+    min-width:0 !important;
+    max-width:45% !important;
+  }
+
+  .nav{
+    min-width:0 !important;
+    max-width:55% !important;
+    overflow:hidden;
+  }
+
+  /* Prevent cards/grids from creating horizontal overflow */
+  .institute-grid,
+  .category-grid,
+  .hero-stats,
+  .leaderboard-list{
+    min-width:0 !important;
+    width:100%;
+  }
+
+  /* Long leaderboard names/results */
+  .leaderboard-row,
+  .leaderboard-student,
+  .leaderboard-score{
+    min-width:0 !important;
+  }
+
+  /* Prevent accidental horizontal transforms */
+  .hero,
+  .section,
+  .site-footer{
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+}
