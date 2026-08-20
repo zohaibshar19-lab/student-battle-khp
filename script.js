@@ -3740,7 +3740,6 @@ async function getLiveQuestions() {
 async function getLiveQuestionByNumber(
     questionNumber
 ) {
-
     const client =
         getLiveSupabaseClient();
 
@@ -3748,13 +3747,12 @@ async function getLiveQuestionByNumber(
         return null;
     }
 
-
     const {
         data,
         error
     } =
         await client
-            .from("live_questions")
+            .from("live_competition_questions")
             .select("*")
             .eq(
                 "competition_id",
@@ -3766,21 +3764,17 @@ async function getLiveQuestionByNumber(
             )
             .maybeSingle();
 
-
     if (error) {
-
         console.error(
-            "Could not load live question:",
+            "Could not load live competition question:",
             error
         );
 
         return null;
     }
 
-
     return data;
 }
-
 
 /* =========================================================
    LIVE QUESTION OPTIONS
