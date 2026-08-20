@@ -1939,13 +1939,39 @@ main{
   /* -----------------------------------------
      LEADERBOARD
   ----------------------------------------- */
+.leaderboard-row {
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) 80px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-height: 62px;
+    padding: 10px;
+    box-sizing: border-box;
+}
 
-  .leaderboard-row{
-    grid-template-columns:40px minmax(0,1fr) 72px;
-    gap:9px;
-    min-height:65px;
-    padding:11px 12px;
-  }
+.leaderboard-row .leaderboard-rank {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.leaderboard-row .leaderboard-student {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0;
+}
+
+.leaderboard-row .leaderboard-score {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    white-space: nowrap;
+}
 
   .leaderboard-rank{
     font-size:12px;
@@ -3018,232 +3044,366 @@ main{
   .competition-placeholder small{
     font-size:9.5px;
   }
+/* LEADERBOARD */
 
-  /* LEADERBOARD */
-  .leaderboard-list{
+.leaderboard-list{
+
     width:100%;
-  }
 
-  .leaderboard-row{
-    grid-template-columns:34px minmax(0,1fr) 62px;
-    gap:7px;
-    min-height:62px;
-    padding:10px;
-  }
+}
 
-  .leaderboard-rank{
-    font-size:11px;
-  }
+.leaderboard-item {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) 80px !important;
+    align-items: center !important;
+    gap: 10px;
+    min-height: 62px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+}
 
-  .leaderboard-student{
-    min-width:0;
-  }
+.leaderboard-rank {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px;
+    text-align: center;
+}
 
-  .leaderboard-student strong{
-    font-size:11px;
-  }
+.leaderboard-player {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    min-width: 0;
+}
 
-  .leaderboard-student span{
-    font-size:8px;
-    overflow-wrap:anywhere;
-  }
+.leaderboard-player strong {
+    display: block;
+    white-space: nowrap;
+}
 
-  .leaderboard-score strong{
+.leaderboard-score {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.leaderboard-score strong{
+
     font-size:15px;
-  }
 
-  .leaderboard-score span{
+}
+
+.leaderboard-score span{
+
     font-size:8px;
-  }
 
-  .leaderboard-battles{
+}
+
+.leaderboard-battles{
+
     display:none;
-  }
+
+}
+
 }
 
 /* Phones around 360px to 430px */
+
 @media (min-width:361px) and (max-width:480px){
 
-  .site-header{
-    padding-left:10px;
-    padding-right:10px;
-  }
+    .site-header{
 
-  .brand{
-    flex-basis:42%;
-  }
+        padding-left:10px;
 
-  .nav{
-    max-width:58%;
-  }
+        padding-right:10px;
 
-  .nav>button:not(.nav-cta){
-    padding-left:5px;
-    padding-right:5px;
-    font-size:8.5px;
-  }
+    }
 
-  .nav-cta{
-    padding-left:8px;
-    padding-right:8px;
-    font-size:8.5px;
-  }
+    .brand{
+
+        flex-basis:42%;
+
+    }
+
+    .nav{
+
+        max-width:58%;
+
+    }
+
+    .nav>button:not(.nav-cta){
+
+        padding-left:5px;
+
+        padding-right:5px;
+
+        font-size:8.5px;
+
+    }
+
+    .nav-cta{
+
+        padding-left:8px;
+
+        padding-right:8px;
+
+        font-size:8.5px;
+
+    }
+
 }
 
 /* Small phones */
+
 @media (max-width:360px){
 
-  .site-header{
-    min-height:60px;
-    padding:8px 8px;
-    gap:5px;
-  }
+    .site-header{
 
-  main{
-    padding-top:60px;
-  }
+        min-height:60px;
 
-  .brand{
-    flex-basis:39%;
-    gap:6px;
-  }
+        padding:8px 8px;
 
-  .brand-mark{
-    width:34px;
-    height:34px;
-    flex-basis:34px;
-    font-size:16px;
-  }
+        gap:5px;
 
-  .brand-title{
-    font-size:10px;
-  }
+    }
 
-  .brand-subtitle{
-    display:none;
-  }
+    main{
 
-  .nav{
-    max-width:61%;
-    gap:1px;
-  }
+        padding-top:60px;
 
-  .nav>button:not(.nav-cta){
-    min-height:31px;
-    padding:5px 4px;
-    font-size:7.5px;
-  }
+    }
 
-  .nav-cta{
-    min-height:31px;
-    padding:6px 7px;
-    font-size:7.5px;
-  }
+    .brand{
 
-  .hero{
-    width:calc(100% - 24px);
-    padding-top:46px;
-    padding-bottom:40px;
-  }
+        flex-basis:39%;
 
-  .hero h1{
-    font-size:36px;
-    letter-spacing:-1.4px;
-  }
+        gap:6px;
 
-  .hero-copy>p{
-    font-size:11.5px;
-  }
+    }
 
-  .hero-stats{
-    gap:7px;
-  }
+    .brand-mark{
 
-  .hero-stats strong{
-    font-size:17px;
-  }
+        width:34px;
 
-  .hero-stats span{
-    font-size:7px;
-  }
+        height:34px;
 
-  .hero-card{
-    padding:19px 14px;
-  }
+        flex-basis:34px;
 
-  .avatar{
-    width:50px;
-    height:50px;
-    font-size:18px;
-  }
+        font-size:16px;
 
-  .vs{
-    width:31px;
-    height:31px;
-    flex-basis:31px;
-  }
+    }
 
-  .section{
-    width:calc(100% - 24px);
-    padding:50px 0;
-  }
+    .brand-title{
 
-  .section-heading h2{
-    font-size:29px;
-  }
+        font-size:10px;
+
+    }
+
+    .brand-subtitle{
+
+        display:none;
+
+    }
+
+    .nav{
+
+        max-width:61%;
+
+        gap:1px;
+
+    }
+
+    .nav>button:not(.nav-cta){
+
+        min-height:31px;
+
+        padding:5px 4px;
+
+        font-size:7.5px;
+
+    }
+
+    .nav-cta{
+
+        min-height:31px;
+
+        padding:6px 7px;
+
+        font-size:7.5px;
+
+    }
+
+    .hero{
+
+        width:calc(100% - 24px);
+
+        padding-top:46px;
+
+        padding-bottom:40px;
+
+    }
+
+    .hero h1{
+
+        font-size:36px;
+
+        letter-spacing:-1.4px;
+
+    }
+
+    .hero-copy>p{
+
+        font-size:11.5px;
+
+    }
+
+    .hero-stats{
+
+        gap:7px;
+
+    }
+
+    .hero-stats strong{
+
+        font-size:17px;
+
+    }
+
+    .hero-stats span{
+
+        font-size:7px;
+
+    }
+
+    .hero-card{
+
+        padding:19px 14px;
+
+    }
+
+    .avatar{
+
+        width:50px;
+
+        height:50px;
+
+        font-size:18px;
+
+    }
+
+    .vs{
+
+        width:31px;
+
+        height:31px;
+
+        flex-basis:31px;
+
+    }
+
+    .section{
+
+        width:calc(100% - 24px);
+
+        padding:50px 0;
+
+    }
+
+    .section-heading h2{
+
+        font-size:29px;
+
+    }
+
 }
 
 /* Very small phones */
+
 @media (max-width:320px){
 
-  .site-header{
-    padding-left:6px;
-    padding-right:6px;
-  }
+    .site-header{
 
-  .brand{
-    flex-basis:35%;
-  }
+        padding-left:6px;
 
-  .brand-mark{
-    width:31px;
-    height:31px;
-    flex-basis:31px;
-    font-size:14px;
-  }
+        padding-right:6px;
 
-  .brand-title{
-    font-size:8.5px;
-  }
+    }
 
-  .nav{
-    max-width:65%;
-  }
+    .brand{
 
-  .nav>button:not(.nav-cta){
-    padding:4px 2px;
-    font-size:6.8px;
-  }
+        flex-basis:35%;
 
-  .nav-cta{
-    padding:5px 5px;
-    font-size:6.8px;
-  }
+    }
 
-  .hero h1{
-    font-size:32px;
-  }
+    .brand-mark{
 
-  .hero-card{
-    padding:17px 11px;
-  }
+        width:31px;
 
-  .section-heading h2{
-    font-size:27px;
-  }
+        height:31px;
 
-  .modal-box{
-    padding-left:12px;
-    padding-right:12px;
-  }
+        flex-basis:31px;
+
+        font-size:14px;
+
+    }
+
+    .brand-title{
+
+        font-size:8.5px;
+
+    }
+
+    .nav{
+
+        max-width:65%;
+
+    }
+
+    .nav>button:not(.nav-cta){
+
+        padding:4px 2px;
+
+        font-size:6.8px;
+
+    }
+
+    .nav-cta{
+
+        padding:5px 5px;
+
+        font-size:6.8px;
+
+    }
+
+    .hero h1{
+
+        font-size:32px;
+
+    }
+
+    .hero-card{
+
+        padding:17px 11px;
+
+    }
+
+    .section-heading h2{
+
+        font-size:27px;
+
+    }
+
+    .modal-box{
+
+        padding-left:12px;
+
+        padding-right:12px;
+
+    }
+
 }
