@@ -2537,21 +2537,12 @@ main{
   /* HEADER
      Keep the navigation readable instead of shrinking it to tiny text. */
   .site-header{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
     min-height:64px;
     width:100%;
     padding:9px 12px;
     gap:8px;
     display:flex;
     align-items:center;
-    z-index:1000;
-  }
-
-  main{
-    padding-top:64px;
   }
 
   .brand{
@@ -3099,10 +3090,6 @@ main{
     gap:5px;
   }
 
-  main{
-    padding-top:60px;
-  }
-
   .brand{
     flex-basis:39%;
     gap:6px;
@@ -3245,201 +3232,5 @@ main{
   .modal-box{
     padding-left:12px;
     padding-right:12px;
-  }
-}
-
-
-/* =========================================================
-   MOBILE NAV: ICON + SHORT LABELS
-   Home / Institutes / Battles
-========================================================= */
-
-@media (max-width:700px){
-
-  .nav{
-    gap:6px;
-  }
-
-  .nav>button:not(.nav-cta){
-    min-width:0;
-    min-height:36px;
-    padding:6px 7px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    border:1px solid rgba(255,255,255,.07);
-    border-radius:9px;
-    background:rgba(255,255,255,.025);
-    color:#d8d8d8;
-    font-size:0;
-    line-height:1;
-    white-space:nowrap;
-  }
-
-  /* Remove the old underline effect */
-  .nav>button:not(.nav-cta)::after{
-    display:none;
-  }
-
-  /* HOME */
-  .nav>button:not(.nav-cta):nth-child(1)::before{
-    content:"⌂";
-    display:inline-block;
-    color:var(--gold);
-    font-size:16px;
-    line-height:1;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(1)::after{
-    content:"Home";
-    display:inline-block;
-    position:static;
-    width:auto;
-    height:auto;
-    transform:none;
-    background:none;
-    color:#d8d8d8;
-    font-size:9px;
-    font-weight:700;
-  }
-
-  /* INSTITUTES */
-  .nav>button:not(.nav-cta):nth-child(2)::before{
-    content:"▣";
-    display:inline-block;
-    color:var(--gold);
-    font-size:13px;
-    line-height:1;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(2)::after{
-    content:"Inst.";
-    display:inline-block;
-    position:static;
-    width:auto;
-    height:auto;
-    transform:none;
-    background:none;
-    color:#d8d8d8;
-    font-size:9px;
-    font-weight:700;
-  }
-
-  /* BATTLES */
-  .nav>button:not(.nav-cta):nth-child(3)::before{
-    content:"⚔";
-    display:inline-block;
-    color:var(--gold);
-    font-size:14px;
-    line-height:1;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(3)::after{
-    content:"Battle";
-    display:inline-block;
-    position:static;
-    width:auto;
-    height:auto;
-    transform:none;
-    background:none;
-    color:#d8d8d8;
-    font-size:9px;
-    font-weight:700;
-  }
-
-  .nav>button:not(.nav-cta):active,
-  .nav>button:not(.nav-cta):hover{
-    border-color:rgba(244,180,0,.25);
-    background:rgba(244,180,0,.06);
-  }
-
-  /* Keep the account/login button separated */
-  #userArea{
-    margin-left:3px;
-  }
-
-  .nav-cta{
-    min-height:36px;
-    padding:7px 9px;
-    font-size:9px;
-    border-radius:9px;
-  }
-}
-
-/* Smaller phones */
-@media (max-width:420px){
-
-  .nav{
-    gap:4px;
-  }
-
-  .nav>button:not(.nav-cta){
-    min-height:34px;
-    padding:5px 5px;
-    gap:3px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(1)::before{
-    font-size:14px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(2)::before{
-    font-size:12px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(3)::before{
-    font-size:13px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(1)::after,
-  .nav>button:not(.nav-cta):nth-child(2)::after,
-  .nav>button:not(.nav-cta):nth-child(3)::after{
-    font-size:8px;
-  }
-
-  .nav-cta{
-    min-height:34px;
-    padding:6px 7px;
-    font-size:8px;
-  }
-}
-
-/* Very small phones */
-@media (max-width:360px){
-
-  .nav{
-    gap:3px;
-  }
-
-  .nav>button:not(.nav-cta){
-    min-height:32px;
-    padding:4px 4px;
-    gap:2px;
-    border-radius:7px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(1)::before{
-    font-size:13px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(2)::before{
-    font-size:11px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(3)::before{
-    font-size:12px;
-  }
-
-  .nav>button:not(.nav-cta):nth-child(1)::after,
-  .nav>button:not(.nav-cta):nth-child(2)::after,
-  .nav>button:not(.nav-cta):nth-child(3)::after{
-    font-size:7px;
-  }
-
-  .nav-cta{
-    min-height:32px;
-    padding:5px 6px;
-    font-size:7px;
   }
 }
