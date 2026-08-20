@@ -5472,19 +5472,11 @@ async function loadLeaderboard() {
                 .select(
                     "id, title, status, total_questions, finished_at, created_at"
                 )
-                .eq(
-                    "status",
-                    "finished"
-                )
-                .order(
-                    "finished_at",
-                    {
-                        ascending: false
-                    }
-                )
-                .limit(1)
-                .maybeSingle();
-
+               .eq(
+    "id",
+    activeLiveCompetition.id
+)
+.maybeSingle();
 
         if (competitionError) {
 
