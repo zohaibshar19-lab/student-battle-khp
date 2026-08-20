@@ -7616,19 +7616,13 @@ async function checkLiveCompetitionStatus() {
             immediately load it.
         */
 
-        if (
-            competitionChanged ||
-            [
-                "live",
-                "active",
-                "running",
-                "started"
-            ].includes(newStatus)
-        ) {
+       activeLiveCompetition =
+    activatedCompetition;
 
-            await loadLiveCompetition();
-        }
 
+if (competitionChanged) {
+    await loadLiveCompetition();
+}
 
     } catch(error) {
 
